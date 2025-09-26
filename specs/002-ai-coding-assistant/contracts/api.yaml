@@ -1,0 +1,485 @@
+openapi: 3.0.3
+info:
+  title: AI Coding Assistant Experience Platform API
+  version: 1.0.0
+  description: API for sharing AI coding assistant experiences, prompts, and code examples
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Development server
+
+security:
+  - GitHubOAuth: []
+
+paths:
+  /auth/github:
+    get:
+      summary: Initiate GitHub OAuth login
+      responses:
+        '302':
+          description: Redirect to GitHub OAuth
+          
+  /auth/callback:
+    get:
+      summary: GitHub OAuth callback
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /experiences:
+    get:
+      summary: Get experiences feed
+      parameters:
+        - name: ai_assistant
+          in: query
+          schema:
+            type: string
+        - name: tags
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of experiences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperienceList'
+                
+    post:
+      summary: Create new experience
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExperience'
+      responses:
+        '201':
+          description: Experience created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experience'
+
+  /experiences/{id}:
+    get:
+      summary: Get experience by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Experience details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperienceDetail'
+                
+    put:
+      summary: Update experience
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateExperience'
+      responses:
+        '200':
+          description: Experience updated
+          
+    delete:
+      summary: Delete experience
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Experience deleted
+
+  /experiences/{id}/comments:
+    get:
+      summary: Get experience comments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+                  
+    post:
+      summary: Add comment to experience
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateComment'
+      responses:
+        '201':
+          description: Comment created
+
+  /experiences/{id}/reactions:
+    post:
+      summary: Add reaction to experience
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReaction'
+      responses:
+        '201':
+          description: Reaction added
+
+  /prompts/{id}/ratings:
+    post:
+      summary: Rate a prompt
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRating'
+      responses:
+        '201':
+          description: Rating added
+
+  /users/me:
+    get:
+      summary: Get current user profile
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /users/{id}:
+    get:
+      summary: Get user profile by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+
+components:
+  securitySchemes:
+    GitHubOAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://github.com/login/oauth/authorize
+          tokenUrl: https://github.com/login/oauth/access_token
+          scopes:
+            user:email: Access user email
+
+  schemas:
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        github_id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        avatar_url:
+          type: string
+        bio:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    UserProfile:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            experience_count:
+              type: integer
+            prompt_count:
+              type: integer
+
+    Experience:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        ai_assistant_type:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        github_urls:
+          type: array
+          items:
+            type: string
+        is_news:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ExperienceDetail:
+      allOf:
+        - $ref: '#/components/schemas/Experience'
+        - type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            prompts:
+              type: array
+              items:
+                $ref: '#/components/schemas/Prompt'
+            reaction_counts:
+              type: object
+              properties:
+                likes:
+                  type: integer
+                helpful:
+                  type: integer
+                bookmarks:
+                  type: integer
+
+    ExperienceList:
+      type: object
+      properties:
+        experiences:
+          type: array
+          items:
+            $ref: '#/components/schemas/Experience'
+        total:
+          type: integer
+        page:
+          type: integer
+        pages:
+          type: integer
+
+    CreateExperience:
+      type: object
+      required:
+        - title
+        - description
+        - ai_assistant_type
+      properties:
+        title:
+          type: string
+          maxLength: 500
+        description:
+          type: string
+        ai_assistant_type:
+          type: string
+          enum: [GitHub Copilot, ChatGPT, Claude, Amazon Q, Other]
+        tags:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+        github_urls:
+          type: array
+          items:
+            type: string
+            pattern: '^https://github\.com/'
+        is_news:
+          type: boolean
+          default: false
+        prompts:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreatePrompt'
+
+    UpdateExperience:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 500
+        description:
+          type: string
+        ai_assistant_type:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        github_urls:
+          type: array
+          items:
+            type: string
+
+    Prompt:
+      type: object
+      properties:
+        id:
+          type: integer
+        experience_id:
+          type: integer
+        content:
+          type: string
+        context:
+          type: string
+        results_achieved:
+          type: string
+        average_rating:
+          type: number
+          format: float
+        rating_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    CreatePrompt:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          maxLength: 5000
+        context:
+          type: string
+          maxLength: 2000
+        results_achieved:
+          type: string
+          maxLength: 2000
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        user:
+          $ref: '#/components/schemas/User'
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    CreateComment:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          maxLength: 1000
+
+    CreateReaction:
+      type: object
+      required:
+        - reaction_type
+      properties:
+        reaction_type:
+          type: string
+          enum: [like, helpful, bookmark]
+
+    CreateRating:
+      type: object
+      required:
+        - rating
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5

@@ -1,0 +1,132 @@
+// Prisma Schema for AI Coding Assistant Experience Platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  githubId  Int      @unique @map("github_id")
+  username  String   @db.VarChar(255)
+  email     String?  @db.VarChar(255)
+  avatarUrl String?  @map("avatar_url")
+  bio       String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  lastLogin DateTime? @map("last_login")
+
+  // Relations
+  experiences Experience[]
+  comments    Comment[]
+  reactions   Reaction[]
+  ratings     PromptRating[]
+
+  @@map("users")
+}
+
+model Experience {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @map("user_id")
+  title           String   @db.VarChar(500)
+  description     String
+  aiAssistantType String   @map("ai_assistant_type") @db.VarChar(100)
+  tags            String[]
+  githubUrls      String[] @map("github_urls")
+  isNews          Boolean  @default(false) @map("is_news")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompts   Prompt[]
+  comments  Comment[]
+  reactions Reaction[]
+
+  @@index([aiAssistantType])
+  @@index([createdAt(sort: Desc)])
+  @@index([userId])
+  @@map("experiences")
+}
+
+model Prompt {
+  id               Int      @id @default(autoincrement())
+  experienceId     Int      @map("experience_id")
+  content          String   @db.Text
+  context          String?  @db.Text
+  resultsAchieved  String?  @map("results_achieved") @db.Text
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  // Relations
+  experience Experience    @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  ratings    PromptRating[]
+
+  @@map("prompts")
+}
+
+model Comment {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  experienceId Int      @map("experience_id")
+  content      String   @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experience Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@index([experienceId])
+  @@map("comments")
+}
+
+model Reaction {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  experienceId Int      @map("experience_id")
+  reactionType String   @map("reaction_type") @db.VarChar(50)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  experience Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, experienceId, reactionType])
+  @@index([experienceId])
+  @@map("reactions")
+}
+
+model PromptRating {
+  id       Int      @id @default(autoincrement())
+  userId   Int      @map("user_id")
+  promptId Int      @map("prompt_id")
+  rating   Int      @db.SmallInt
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, promptId])
+  @@index([promptId])
+  @@map("prompt_ratings")
+}
+
+// Enums for validation
+enum AIAssistantType {
+  GITHUB_COPILOT @map("GitHub Copilot")
+  CHATGPT        @map("ChatGPT")
+  CLAUDE         @map("Claude")
+  AMAZON_Q       @map("Amazon Q")
+  OTHER          @map("Other")
+}
+
+enum ReactionType {
+  LIKE     @map("like")
+  HELPFUL  @map("helpful")
+  BOOKMARK @map("bookmark")
+}
