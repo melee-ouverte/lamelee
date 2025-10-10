@@ -38,11 +38,11 @@
 - Prisma schema and migrations in root
 
 ## Phase 3.1: Setup
-- [ ] T001 Initialize Next.js 14 project with TypeScript and configure package.json dependencies
-- [ ] T002 Configure Prisma with PostgreSQL connection and initialize schema file at prisma/schema.prisma
-- [ ] T003 [P] Configure ESLint, Prettier, and TypeScript strict mode in tsconfig.json
-- [ ] T004 Configure NextAuth.js with GitHub provider in src/lib/auth.ts
-- [ ] T005 Create environment variables template (.env.example) with DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
+- [x] T001 Initialize Next.js 14 project with TypeScript and configure package.json dependencies
+- [x] T002 Configure Prisma with PostgreSQL connection and initialize schema file at prisma/schema.prisma
+- [x] T003 [P] Configure ESLint, Prettier, and TypeScript strict mode in tsconfig.json
+- [x] T004 Configure NextAuth.js with GitHub provider in src/lib/auth.ts
+- [x] T005 Create environment variables template (.env.example) with DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
