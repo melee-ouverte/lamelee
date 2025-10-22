@@ -1,6 +1,5 @@
 import { NextAuthOptions } from 'next-auth';
 import GithubProvider from 'next-auth/providers/github';
-import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from './db';
 
 /**
@@ -43,9 +42,6 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
 
-  // Use Prisma adapter for database persistence
-  adapter: PrismaAdapter(prisma),
-
   // Configure session strategy
   session: {
     // Use JWT for stateless sessions (better for serverless environments)
@@ -67,28 +63,61 @@ export const authOptions: NextAuthOptions = {
      * JWT Callback
      *
      * This callback is called whenever a JWT is created or updated.
-     * We use it to add custom fields to the token.
+     * We use it to add custom fields to the token and manage user data.
      *
      * @param token - The JWT token
      * @param user - User object (only available on sign in)
      * @param account - Account object (only available on sign in)
+     * @param profile - OAuth profile (only available on sign in)
      */
-    async jwt({ token, user, account }) {
-      // On initial sign in, add custom user data to the token
-      if (user) {
-        token.id = user.id;
-        token.githubId = user.githubId;
-        token.username = user.username;
-        token.avatarUrl = user.avatarUrl;
-        token.bio = user.bio;
-      }
+    async jwt({ token, user, account, profile }) {
+      // On initial sign in with GitHub
+      if (account && account.provider === 'github' && profile) {
+        try {
+          // Cast profile to GitHub profile type
+          const githubProfile = profile as any;
+          
+          // Check if user exists in database
+          const existingUser = await prisma.user.findUnique({
+            where: { githubId: githubProfile.id.toString() },
+          });
 
-      // On sign in, update user's updatedAt timestamp
-      if (account && user) {
-        await prisma.user.update({
-          where: { id: parseInt(user.id) },
-          data: { updatedAt: new Date() },
-        });
+          let dbUser;
+          if (existingUser) {
+            // Update existing user
+            dbUser = await prisma.user.update({
+              where: { githubId: githubProfile.id.toString() },
+              data: {
+                username: githubProfile.login,
+                email: githubProfile.email,
+                avatarUrl: githubProfile.avatar_url,
+                bio: githubProfile.bio || null,
+                updatedAt: new Date(),
+              },
+            });
+          } else {
+            // Create new user
+            dbUser = await prisma.user.create({
+              data: {
+                githubId: githubProfile.id.toString(),
+                githubUsername: githubProfile.login,
+                username: githubProfile.login,
+                email: githubProfile.email,
+                avatarUrl: githubProfile.avatar_url,
+                bio: githubProfile.bio || null,
+              },
+            });
+          }
+
+          // Add user data to token
+          token.id = dbUser.id.toString();
+          token.githubId = parseInt(dbUser.githubId);
+          token.username = dbUser.username;
+          token.avatarUrl = dbUser.avatarUrl;
+          token.bio = dbUser.bio;
+        } catch (error) {
+          console.error('Error managing user in database:', error);
+        }
       }
 
       return token;

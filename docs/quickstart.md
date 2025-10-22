@@ -458,6 +458,22 @@ Error: Configuration issue with GitHub provider
 2. Check callback URL in GitHub OAuth app settings
 3. Ensure NEXTAUTH_URL matches your development URL
 
+**Issue**: OAuth callback handler error
+```
+Error in the OAuth callback handler route.
+Cannot read properties of undefined (reading 'findUnique')
+```
+**Solution**:
+This indicates a Prisma adapter configuration issue. The fix has been applied - restart your development server:
+```bash
+npm run dev
+```
+If the error persists, check that your database is properly migrated:
+```bash
+npx prisma migrate dev --name init
+npx prisma generate
+```
+
 **Issue**: Build fails with TypeScript errors
 ```
 Error: Type 'string | undefined' is not assignable to type 'string'
@@ -486,6 +502,17 @@ npm install
 # Or install missing test dependencies
 npm install --save-dev @testing-library/react @testing-library/jest-dom
 ```
+
+**Issue**: Next.js Image component error with GitHub avatars
+```
+Error: Invalid src prop on `next/image`, hostname "avatars.githubusercontent.com" is not configured
+```
+**Solution**:
+This indicates that GitHub avatar images need to be configured in Next.js. The fix has been applied - restart your development server:
+```bash
+npm run dev
+```
+The `next.config.mjs` file now includes the necessary image domain configurations for GitHub avatars.
 
 ### Debug Mode
 
