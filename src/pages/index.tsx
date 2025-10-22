@@ -37,13 +37,13 @@ export default function Home({ featuredExperiences, stats }: HomeProps) {
         </p>
         <div className="flex gap-4 justify-center flex-col sm:flex-row">
           <a
-            href="/experiences"
+            href="/feed"
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors"
           >
             Browse Experiences
           </a>
           <a
-            href="/experiences/new"
+            href="/create"
             className="border border-gray-300 hover:border-gray-400 text-gray-700 font-semibold py-3 px-8 rounded-lg transition-colors"
           >
             Share Your Experience
@@ -83,7 +83,7 @@ export default function Home({ featuredExperiences, stats }: HomeProps) {
               Featured Experiences
             </h2>
             <a
-              href="/experiences"
+              href="/feed"
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
               View all →
