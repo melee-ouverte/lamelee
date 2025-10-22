@@ -4,7 +4,7 @@ import { Heart, ThumbsUp, Bookmark, HelpCircle, Zap } from 'lucide-react';
 
 interface Reaction {
   id: string;
-  type: 'like' | 'helpful' | 'bookmark' | 'insightful' | 'inspiring';
+  type: 'HELPFUL' | 'CREATIVE' | 'EDUCATIONAL' | 'INNOVATIVE' | 'PROBLEMATIC';
   userId: string;
 }
 
@@ -16,15 +16,7 @@ interface ReactionButtonsProps {
 }
 
 const reactionConfig = {
-  like: {
-    icon: ThumbsUp,
-    label: 'Like',
-    activeColor: 'text-blue-600',
-    hoverColor: 'hover:text-blue-600',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-  },
-  helpful: {
+  HELPFUL: {
     icon: HelpCircle,
     label: 'Helpful',
     activeColor: 'text-green-600',
@@ -32,29 +24,37 @@ const reactionConfig = {
     bgColor: 'bg-green-50',
     borderColor: 'border-green-200',
   },
-  bookmark: {
-    icon: Bookmark,
-    label: 'Bookmark',
+  CREATIVE: {
+    icon: Zap,
+    label: 'Creative',
     activeColor: 'text-purple-600',
     hoverColor: 'hover:text-purple-600',
     bgColor: 'bg-purple-50',
     borderColor: 'border-purple-200',
   },
-  insightful: {
-    icon: Zap,
-    label: 'Insightful',
-    activeColor: 'text-yellow-600',
-    hoverColor: 'hover:text-yellow-600',
-    bgColor: 'bg-yellow-50',
-    borderColor: 'border-yellow-200',
+  EDUCATIONAL: {
+    icon: Bookmark,
+    label: 'Educational',
+    activeColor: 'text-blue-600',
+    hoverColor: 'hover:text-blue-600',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-200',
   },
-  inspiring: {
+  INNOVATIVE: {
     icon: Heart,
-    label: 'Inspiring',
+    label: 'Innovative',
     activeColor: 'text-red-600',
     hoverColor: 'hover:text-red-600',
     bgColor: 'bg-red-50',
     borderColor: 'border-red-200',
+  },
+  PROBLEMATIC: {
+    icon: ThumbsUp,
+    label: 'Problematic',
+    activeColor: 'text-orange-600',
+    hoverColor: 'hover:text-orange-600',
+    bgColor: 'bg-orange-50',
+    borderColor: 'border-orange-200',
   },
 } as const;
 

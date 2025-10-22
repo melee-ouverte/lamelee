@@ -55,7 +55,7 @@ interface ExperienceDetailProps {
     }>;
     reactions: Array<{
       id: string;
-      type: 'like' | 'helpful' | 'bookmark' | 'insightful' | 'inspiring';
+      type: 'HELPFUL' | 'CREATIVE' | 'EDUCATIONAL' | 'INNOVATIVE' | 'PROBLEMATIC';
       userId: string;
     }>;
   };
@@ -89,7 +89,7 @@ export default function ExperienceDetail({
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: reactionType }),
+        body: JSON.stringify({ reactionType }),
       }
     );
 
@@ -217,7 +217,7 @@ export default function ExperienceDetail({
           {/* Reactions */}
           <div className="border-t border-gray-200 pt-6">
             <ReactionButtons
-              experienceId={experience.id}
+              _experienceId={experience.id}
               reactions={experience.reactions}
               onReact={handleReact}
               isLoading={isLoading}
@@ -355,8 +355,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         },
       })),
       reactions: (experience as any).reactions.map((reaction: any) => ({
-        ...reaction,
         id: reaction.id.toString(),
+        type: reaction.reactionType, // Map database field to frontend interface
+        userId: reaction.userId.toString(),
       })),
     };
 
