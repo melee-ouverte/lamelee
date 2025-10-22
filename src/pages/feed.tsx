@@ -540,7 +540,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     }
 
     if (aiAssistant) {
-      where.aiAssistantType = aiAssistant;
+      where.aiAssistant = aiAssistant;
     }
 
     if (tags.length > 0) {
@@ -586,9 +586,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     const tagCounts: Record<string, number> = {};
     tagAggregation.forEach((exp: any) => {
-      exp.tags.forEach((tag: string) => {
-        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-      });
+      if (exp.tags && typeof exp.tags === 'string') {
+        const tags = exp.tags.split(',').map((tag: string) => tag.trim()).filter(Boolean);
+        tags.forEach((tag: string) => {
+          tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+        });
+      }
     });
 
     const availableTags = Object.entries(tagCounts)
@@ -600,6 +603,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       ...exp,
       id: exp.id.toString(),
       createdAt: exp.createdAt.toISOString(),
+      updatedAt: exp.updatedAt.toISOString(), // Serialize Date object
+      aiAssistantType: exp.aiAssistant, // Map database field to frontend interface
+      githubUrls: exp.githubUrl ? [exp.githubUrl] : [], // Convert single URL to array
+      tags: exp.tags ? exp.tags.split(',').map((tag: string) => tag.trim()) : [], // Convert comma-separated string to array
       user: {
         ...exp.user,
         id: exp.user.id.toString(),
@@ -616,10 +623,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           totalPages: Math.ceil(total / limit),
         },
         filters: {
-          search: search || undefined,
-          aiAssistant: aiAssistant || undefined,
-          tags: tags.length > 0 ? tags : undefined,
-          user: user || undefined,
+          ...(search && { search }),
+          ...(aiAssistant && { aiAssistant }),
+          ...(tags.length > 0 && { tags }),
+          ...(user && { user }),
         },
         availableTags,
       },
