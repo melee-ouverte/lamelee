@@ -224,37 +224,78 @@ export const experienceSchema = z.object({
   title: z
     .string()
     .min(5, 'Title must be at least 5 characters')
-    .max(100, 'Title must not exceed 100 characters'),
+    .max(200, 'Title must not exceed 200 characters'),
 
   description: z
     .string()
     .min(20, 'Description must be at least 20 characters')
     .max(2000, 'Description must not exceed 2000 characters'),
 
+  // Support both old format (single githubUrl) and new format (githubUrls array)
   githubUrl: z
     .string()
+    .optional()
     .refine(
-      (url) => githubUrlValidation.isValidGitHubUrl(url),
+      (url) => !url || githubUrlValidation.isValidGitHubUrl(url),
       'Must be a valid GitHub repository URL'
     ),
 
+  githubUrls: z
+    .array(z.string())
+    .optional()
+    .refine(
+      (urls) => !urls || urls.every(url => !url || githubUrlValidation.isValidGitHubUrl(url)),
+      'All GitHub URLs must be valid GitHub repository URLs'
+    ),
+
+  // Support both old format (aiAssistant) and new format (aiAssistantType)
   aiAssistant: z
     .enum(['github-copilot', 'claude', 'gpt', 'cursor', 'other'])
-    .default('other'),
+    .optional(),
+
+  aiAssistantType: z
+    .enum(['github-copilot', 'claude', 'gpt', 'cursor', 'other'])
+    .optional(),
 
   tags: z
-    .string()
-    .max(200, 'Tags must not exceed 200 characters')
+    .array(z.string())
     .optional()
     .transform(
-      (tags) =>
-        tags
-          ?.split(',')
-          .map((tag) => tag.trim())
-          .filter(Boolean)
-          .join(',') || ''
+      (tags) => tags?.join(',') || ''
     ),
-});
+
+  isNews: z.boolean().optional().default(false),
+
+  prompts: z
+    .array(z.object({
+      content: z
+        .string()
+        .min(10, 'Prompt must be at least 10 characters')
+        .max(5000, 'Prompt must not exceed 5000 characters'),
+      context: z
+        .string()
+        .max(1000, 'Context must not exceed 1000 characters')
+        .optional(),
+      resultsAchieved: z
+        .string()
+        .max(1000, 'Results must not exceed 1000 characters')
+        .optional(),
+    }))
+    .optional()
+    .default([]),
+}).refine(
+  (data) => data.aiAssistant || data.aiAssistantType,
+  {
+    message: 'AI Assistant type is required',
+    path: ['aiAssistant'],
+  }
+).refine(
+  (data) => data.githubUrl || (data.githubUrls && data.githubUrls.length > 0),
+  {
+    message: 'At least one GitHub URL is required',
+    path: ['githubUrl'],
+  }
+);
 
 // Prompt validation
 export const promptSchema = z.object({

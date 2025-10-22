@@ -210,55 +210,95 @@ async function handleCreateExperience(
     });
   }
 
-  const { title, description, githubUrl, aiAssistant, tags } = validation.data;
+  const { 
+    title, 
+    description, 
+    githubUrl, 
+    githubUrls, 
+    aiAssistant, 
+    aiAssistantType, 
+    tags, 
+    isNews, 
+    prompts 
+  } = validation.data;
+
+  // Normalize data
+  const finalGithubUrl = githubUrl || (githubUrls && githubUrls[0]) || '';
+  const finalAiAssistant = aiAssistant || aiAssistantType || 'other';
+  const finalTags = tags || '';
 
   try {
-    // Create experience
-    const experience = await prisma.experience.create({
-      data: {
-        title,
-        description,
-        githubUrl,
-        aiAssistant,
-        tags: tags || '',
-        userId: parseInt(session.user.id),
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-            avatarUrl: true,
+    // Create experience in a transaction
+    const result = await prisma.$transaction(async (tx: any) => {
+      // Create experience
+      const experience = await tx.experience.create({
+        data: {
+          title,
+          description,
+          githubUrl: finalGithubUrl,
+          aiAssistant: finalAiAssistant,
+          tags: finalTags,
+          userId: parseInt(session.user.id),
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              avatarUrl: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    // Update user's experience count
-    await prisma.user.update({
-      where: { id: parseInt(session.user.id) },
-      data: {
-        experienceCount: { increment: 1 },
-      },
+      // Create prompts if provided
+      if (prompts && prompts.length > 0) {
+        const promptData = prompts.map((prompt, index) => ({
+          content: prompt.content,
+          context: prompt.context || null,
+          orderIndex: index,
+          experienceId: experience.id,
+        }));
+
+        await tx.prompt.createMany({
+          data: promptData,
+        });
+
+        // Update experience prompt count
+        await tx.experience.update({
+          where: { id: experience.id },
+          data: { promptCount: prompts.length },
+        });
+      }
+
+      // Update user's experience count
+      await tx.user.update({
+        where: { id: parseInt(session.user.id) },
+        data: {
+          experienceCount: { increment: 1 },
+        },
+      });
+
+      return experience;
     });
 
     // Format response
     const formattedExperience = {
-      id: experience.id,
-      title: experience.title,
-      description: experience.description,
-      githubUrl: experience.githubUrl,
-      aiAssistant: experience.aiAssistant,
-      tags: experience.tags ? experience.tags.split(',').filter(Boolean) : [],
-      createdAt: experience.createdAt.toISOString(),
-      updatedAt: experience.updatedAt.toISOString(),
+      id: result.id,
+      title: result.title,
+      description: result.description,
+      githubUrl: result.githubUrl,
+      aiAssistant: result.aiAssistant,
+      tags: result.tags ? result.tags.split(',').filter(Boolean) : [],
+      createdAt: result.createdAt.toISOString(),
+      updatedAt: result.updatedAt.toISOString(),
       author: {
-        id: experience.user.id,
-        username: experience.user.username,
-        avatarUrl: experience.user.avatarUrl,
+        id: result.user.id,
+        username: result.user.username,
+        avatarUrl: result.user.avatarUrl,
       },
       stats: {
-        promptCount: 0,
+        promptCount: prompts?.length || 0,
         commentCount: 0,
         reactionCount: 0,
         averageRating: 0,
