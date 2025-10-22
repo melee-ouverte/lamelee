@@ -1,6 +1,6 @@
 /**
  * T066-T068: Admin Monitoring Dashboard Component
- * 
+ *
  * Simple React component for viewing system monitoring data,
  * request logs, and testing middleware functionality.
  */
@@ -50,30 +50,35 @@ interface HealthStatus {
 }
 
 const AdminMonitoringDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'logs' | 'stats' | 'health' | 'test'>('stats');
+  const [activeTab, setActiveTab] = useState<
+    'logs' | 'stats' | 'health' | 'test'
+  >('stats');
   const [isLoading, setIsLoading] = useState(false);
   const [logs, setLogs] = useState<RequestLog[]>([]);
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async (action: string, params: Record<string, any> = {}) => {
+  const fetchData = async (
+    action: string,
+    params: Record<string, any> = {}
+  ) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const response = await fetch('/api/admin/monitoring', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, ...params }),
       });
-      
+
       const result = await response.json();
-      
+
       if (!result.success) {
         throw new Error(result.error?.message || 'Request failed');
       }
-      
+
       return result.data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -208,15 +213,21 @@ const AdminMonitoringDashboard: React.FC = () => {
               </div>
               <div className="flex justify-between">
                 <span>Successful:</span>
-                <span className="font-medium text-green-600">{stats.successfulRequests}</span>
+                <span className="font-medium text-green-600">
+                  {stats.successfulRequests}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>Errors:</span>
-                <span className="font-medium text-red-600">{stats.errorRequests}</span>
+                <span className="font-medium text-red-600">
+                  {stats.errorRequests}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>Avg Response:</span>
-                <span className="font-medium">{stats.averageResponseTime}ms</span>
+                <span className="font-medium">
+                  {stats.averageResponseTime}ms
+                </span>
               </div>
             </div>
           </div>
@@ -236,12 +247,14 @@ const AdminMonitoringDashboard: React.FC = () => {
             <div className="mt-4">
               <h4 className="font-medium mb-2">Top Users</h4>
               <div className="space-y-1 text-sm">
-                {Object.entries(stats.topUsers).slice(0, 3).map(([user, count]) => (
-                  <div key={user} className="flex justify-between">
-                    <span className="truncate">{user}</span>
-                    <span>{count}</span>
-                  </div>
-                ))}
+                {Object.entries(stats.topUsers)
+                  .slice(0, 3)
+                  .map(([user, count]) => (
+                    <div key={user} className="flex justify-between">
+                      <span className="truncate">{user}</span>
+                      <span>{count}</span>
+                    </div>
+                  ))}
               </div>
             </div>
           </div>
@@ -249,12 +262,14 @@ const AdminMonitoringDashboard: React.FC = () => {
           <div className="bg-white p-6 rounded-lg border border-gray-200">
             <h3 className="text-lg font-semibold mb-4">Top Endpoints</h3>
             <div className="space-y-2 text-sm">
-              {Object.entries(stats.topEndpoints).slice(0, 5).map(([endpoint, count]) => (
-                <div key={endpoint} className="flex justify-between">
-                  <span className="truncate text-gray-600">{endpoint}</span>
-                  <span className="font-medium">{count}</span>
-                </div>
-              ))}
+              {Object.entries(stats.topEndpoints)
+                .slice(0, 5)
+                .map(([endpoint, count]) => (
+                  <div key={endpoint} className="flex justify-between">
+                    <span className="truncate text-gray-600">{endpoint}</span>
+                    <span className="font-medium">{count}</span>
+                  </div>
+                ))}
             </div>
           </div>
         </div>
@@ -277,12 +292,24 @@ const AdminMonitoringDashboard: React.FC = () => {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Method</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">URL</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Time
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Method
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    URL
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Time
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    User
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -340,7 +367,9 @@ const AdminMonitoringDashboard: React.FC = () => {
               </div>
               <div className="flex justify-between">
                 <span>Uptime:</span>
-                <span className="font-medium">{formatUptime(health.uptime)}</span>
+                <span className="font-medium">
+                  {formatUptime(health.uptime)}
+                </span>
               </div>
             </div>
           </div>
@@ -350,19 +379,27 @@ const AdminMonitoringDashboard: React.FC = () => {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>RSS:</span>
-                <span className="font-medium">{formatBytes(health.memory.rss)}</span>
+                <span className="font-medium">
+                  {formatBytes(health.memory.rss)}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>Heap Total:</span>
-                <span className="font-medium">{formatBytes(health.memory.heapTotal)}</span>
+                <span className="font-medium">
+                  {formatBytes(health.memory.heapTotal)}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>Heap Used:</span>
-                <span className="font-medium">{formatBytes(health.memory.heapUsed)}</span>
+                <span className="font-medium">
+                  {formatBytes(health.memory.heapUsed)}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>External:</span>
-                <span className="font-medium">{formatBytes(health.memory.external)}</span>
+                <span className="font-medium">
+                  {formatBytes(health.memory.external)}
+                </span>
               </div>
             </div>
           </div>
@@ -372,11 +409,19 @@ const AdminMonitoringDashboard: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {Object.entries(health.services).map(([service, status]) => (
                 <div key={service} className="text-center">
-                  <div className="text-sm text-gray-600 capitalize">{service}</div>
-                  <div className={`text-xs font-medium mt-1 ${
-                    status.includes('connected') || status.includes('operational') || status.includes('enabled') || status.includes('active')
-                      ? 'text-green-600' : 'text-red-600'
-                  }`}>
+                  <div className="text-sm text-gray-600 capitalize">
+                    {service}
+                  </div>
+                  <div
+                    className={`text-xs font-medium mt-1 ${
+                      status.includes('connected') ||
+                      status.includes('operational') ||
+                      status.includes('enabled') ||
+                      status.includes('active')
+                        ? 'text-green-600'
+                        : 'text-red-600'
+                    }`}
+                  >
                     {status}
                   </div>
                 </div>
@@ -391,12 +436,17 @@ const AdminMonitoringDashboard: React.FC = () => {
         <div className="bg-white p-6 rounded-lg border border-gray-200">
           <h3 className="text-lg font-semibold mb-4">Error Handling Tests</h3>
           <p className="text-gray-600 mb-6">
-            Test different types of errors to verify middleware error handling works correctly.
-            Check the browser console and network tab to see the responses.
+            Test different types of errors to verify middleware error handling
+            works correctly. Check the browser console and network tab to see
+            the responses.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { type: 'validation', label: 'Validation Error', color: 'bg-yellow-600' },
+              {
+                type: 'validation',
+                label: 'Validation Error',
+                color: 'bg-yellow-600',
+              },
               { type: 'auth', label: 'Auth Error', color: 'bg-red-600' },
               { type: 'server', label: 'Server Error', color: 'bg-purple-600' },
               { type: 'custom', label: 'Custom Error', color: 'bg-blue-600' },
@@ -413,8 +463,9 @@ const AdminMonitoringDashboard: React.FC = () => {
           </div>
           <div className="mt-4 p-4 bg-gray-50 rounded-md">
             <p className="text-sm text-gray-600">
-              💡 <strong>Tip:</strong> Open browser DevTools → Network tab to see the detailed error responses
-              with proper status codes, error structures, and request IDs.
+              💡 <strong>Tip:</strong> Open browser DevTools → Network tab to
+              see the detailed error responses with proper status codes, error
+              structures, and request IDs.
             </p>
           </div>
         </div>

@@ -48,7 +48,10 @@ export default function Login({ providers, callbackUrl }: LoginProps) {
     <Layout>
       <Head>
         <title>Sign In - AI Coding Assistant Experience Platform</title>
-        <meta name="description" content="Sign in to share and discover AI coding assistant experiences" />
+        <meta
+          name="description"
+          content="Sign in to share and discover AI coding assistant experiences"
+        />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -66,8 +69,8 @@ export default function Login({ providers, callbackUrl }: LoginProps) {
                 Welcome to the Community
               </h1>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Join thousands of developers sharing their AI coding assistant experiences, 
-                prompts, and insights to help the community grow.
+                Join thousands of developers sharing their AI coding assistant
+                experiences, prompts, and insights to help the community grow.
               </p>
             </div>
 
@@ -86,8 +89,9 @@ export default function Login({ providers, callbackUrl }: LoginProps) {
                         Share Your Experiences
                       </h3>
                       <p className="text-gray-600">
-                        Document and share your AI coding assistant experiences, including 
-                        the prompts that worked, the context, and the results achieved.
+                        Document and share your AI coding assistant experiences,
+                        including the prompts that worked, the context, and the
+                        results achieved.
                       </p>
                     </div>
                   </div>
@@ -103,8 +107,9 @@ export default function Login({ providers, callbackUrl }: LoginProps) {
                         Learn from Others
                       </h3>
                       <p className="text-gray-600">
-                        Discover proven prompts and techniques from the community. 
-                        Filter by AI assistant type, programming language, and use case.
+                        Discover proven prompts and techniques from the
+                        community. Filter by AI assistant type, programming
+                        language, and use case.
                       </p>
                     </div>
                   </div>
@@ -120,8 +125,9 @@ export default function Login({ providers, callbackUrl }: LoginProps) {
                         Rate and Review
                       </h3>
                       <p className="text-gray-600">
-                        Help the community by rating prompts, leaving helpful comments, 
-                        and reacting to experiences that resonate with you.
+                        Help the community by rating prompts, leaving helpful
+                        comments, and reacting to experiences that resonate with
+                        you.
                       </p>
                     </div>
                   </div>
@@ -134,15 +140,21 @@ export default function Login({ providers, callbackUrl }: LoginProps) {
                   </h3>
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
-                      <div className="text-2xl font-bold text-blue-600">1,000+</div>
+                      <div className="text-2xl font-bold text-blue-600">
+                        1,000+
+                      </div>
                       <div className="text-sm text-gray-600">Experiences</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-green-600">500+</div>
+                      <div className="text-2xl font-bold text-green-600">
+                        500+
+                      </div>
                       <div className="text-sm text-gray-600">Developers</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-purple-600">2,500+</div>
+                      <div className="text-2xl font-bold text-purple-600">
+                        2,500+
+                      </div>
                       <div className="text-sm text-gray-600">Prompts</div>
                     </div>
                   </div>
@@ -156,7 +168,8 @@ export default function Login({ providers, callbackUrl }: LoginProps) {
                     Sign In to Get Started
                   </h2>
                   <p className="text-gray-600">
-                    Connect with your GitHub account to start sharing and discovering experiences.
+                    Connect with your GitHub account to start sharing and
+                    discovering experiences.
                   </p>
                 </div>
 
@@ -191,9 +204,13 @@ export default function Login({ providers, callbackUrl }: LoginProps) {
                     Why do we use GitHub?
                   </p>
                   <div className="text-xs text-gray-400 space-y-1">
-                    <p>• Secure authentication with your existing GitHub account</p>
+                    <p>
+                      • Secure authentication with your existing GitHub account
+                    </p>
                     <p>• Automatically sync your profile and avatar</p>
-                    <p>• Connect your coding experiences with your repositories</p>
+                    <p>
+                      • Connect your coding experiences with your repositories
+                    </p>
                     <p>• Build credibility within the developer community</p>
                   </div>
                 </div>
@@ -233,7 +250,10 @@ export default function Login({ providers, callbackUrl }: LoginProps) {
                   Terms of Service
                 </a>{' '}
                 and{' '}
-                <a href="/privacy" className="text-blue-600 hover:text-blue-500">
+                <a
+                  href="/privacy"
+                  className="text-blue-600 hover:text-blue-500"
+                >
                   Privacy Policy
                 </a>
                 .
@@ -248,23 +268,23 @@ export default function Login({ providers, callbackUrl }: LoginProps) {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await getSession(context);
-  
+
   // If user is already signed in, redirect to home
   if (session) {
     return {
       redirect: {
-        destination: context.query.callbackUrl as string || '/',
+        destination: (context.query.callbackUrl as string) || '/',
         permanent: false,
       },
     };
   }
 
   const providers = await getProviders();
-  
+
   return {
     props: {
       providers,
-      callbackUrl: context.query.callbackUrl as string || null,
+      callbackUrl: (context.query.callbackUrl as string) || null,
     },
   };
 };

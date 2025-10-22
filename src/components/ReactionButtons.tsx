@@ -9,7 +9,7 @@ interface Reaction {
 }
 
 interface ReactionButtonsProps {
-  experienceId: string;
+  _experienceId: string;
   reactions: Reaction[];
   onReact?: (reactionType: Reaction['type']) => Promise<void>;
   isLoading?: boolean;
@@ -58,26 +58,29 @@ const reactionConfig = {
   },
 } as const;
 
-export default function ReactionButtons({ 
-  experienceId, 
-  reactions, 
+export default function ReactionButtons({
+  _experienceId,
+  reactions,
   onReact,
-  isLoading = false 
+  isLoading = false,
 }: ReactionButtonsProps) {
   const { data: session } = useSession();
   const [pendingReaction, setPendingReaction] = useState<string | null>(null);
 
   // Group reactions by type and count them
-  const reactionCounts = reactions.reduce((acc, reaction) => {
-    acc[reaction.type] = (acc[reaction.type] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const reactionCounts = reactions.reduce(
+    (acc, reaction) => {
+      acc[reaction.type] = (acc[reaction.type] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   // Check which reactions the current user has made
   const userReactions = new Set(
-    session?.user ? reactions
-      .filter(r => r.userId === session.user.id)
-      .map(r => r.type) : []
+    session?.user
+      ? reactions.filter((r) => r.userId === session.user.id).map((r) => r.type)
+      : []
   );
 
   const handleReaction = async (reactionType: Reaction['type']) => {
@@ -102,8 +105,8 @@ export default function ReactionButtons({
             className="font-medium text-blue-600 hover:text-blue-500"
           >
             Sign in
-          </a>
-          {' '}to react to this experience
+          </a>{' '}
+          to react to this experience
         </span>
       </div>
     );
@@ -112,16 +115,18 @@ export default function ReactionButtons({
   return (
     <div className="space-y-3">
       <div className="flex items-center space-x-2">
-        <span className="text-sm font-medium text-gray-700">Your reaction:</span>
+        <span className="text-sm font-medium text-gray-700">
+          Your reaction:
+        </span>
       </div>
-      
+
       <div className="flex flex-wrap gap-2">
         {Object.entries(reactionConfig).map(([type, config]) => {
           const Icon = config.icon;
           const count = reactionCounts[type] || 0;
           const isActive = userReactions.has(type as Reaction['type']);
           const isPending = pendingReaction === type;
-          
+
           return (
             <button
               key={type}
@@ -129,9 +134,10 @@ export default function ReactionButtons({
               disabled={isLoading || isPending}
               className={`
                 inline-flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-lg border transition-all duration-200
-                ${isActive 
-                  ? `${config.activeColor} ${config.bgColor} ${config.borderColor}` 
-                  : `text-gray-600 bg-white border-gray-300 ${config.hoverColor} hover:bg-gray-50`
+                ${
+                  isActive
+                    ? `${config.activeColor} ${config.bgColor} ${config.borderColor}`
+                    : `text-gray-600 bg-white border-gray-300 ${config.hoverColor} hover:bg-gray-50`
                 }
                 ${isPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 disabled:opacity-50 disabled:cursor-not-allowed
@@ -141,13 +147,16 @@ export default function ReactionButtons({
               <Icon className={`h-4 w-4 ${isPending ? 'animate-pulse' : ''}`} />
               <span>{config.label}</span>
               {count > 0 && (
-                <span className={`
+                <span
+                  className={`
                   inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full
-                  ${isActive 
-                    ? 'bg-white bg-opacity-80 text-gray-800' 
-                    : 'bg-gray-100 text-gray-600'
+                  ${
+                    isActive
+                      ? 'bg-white bg-opacity-80 text-gray-800'
+                      : 'bg-gray-100 text-gray-600'
                   }
-                `}>
+                `}
+                >
                   {count}
                 </span>
               )}

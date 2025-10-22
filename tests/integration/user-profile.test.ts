@@ -1,9 +1,9 @@
 /**
  * Integration Test: User Profile and Statistics
- * 
+ *
  * This test validates user profile display with experience statistics.
  * Based on User Journey Validation from quickstart.md
- * 
+ *
  * Test Status: RED (Must fail before implementation)
  * Related Task: T020
  * Implementation Tasks: T042 (GET /api/users/{id}), T056 (profile page)
@@ -24,14 +24,14 @@ describe('User Profile Integration', () => {
     username: 'testuser',
     email: 'test@example.com',
     avatarUrl: 'https://github.com/testuser.png',
-    bio: 'Full-stack developer passionate about AI tools'
+    bio: 'Full-stack developer passionate about AI tools',
   };
 
   const mockUserProfile = {
     ...mockUser,
     experienceCount: 5,
     promptCount: 12,
-    createdAt: new Date('2023-01-15')
+    createdAt: new Date('2023-01-15'),
   };
 
   beforeEach(() => {
@@ -47,13 +47,13 @@ describe('User Profile Integration', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { id: '1' }
+        query: { id: '1' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.username).toBe(mockUser.username);
       expect(data.avatar_url).toBe(mockUser.avatarUrl);
@@ -68,13 +68,13 @@ describe('User Profile Integration', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { id: '1' }
+        query: { id: '1' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.experience_count).toBe(5);
       expect(data.prompt_count).toBe(12);
@@ -87,7 +87,7 @@ describe('User Profile Integration', () => {
       const userWithStats = {
         ...mockUserProfile,
         experienceCount: 3,
-        promptCount: 8
+        promptCount: 8,
       };
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(userWithStats);
@@ -96,23 +96,23 @@ describe('User Profile Integration', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { id: '1' }
+        query: { id: '1' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.experience_count).toBe(3);
       expect(data.prompt_count).toBe(8);
-      
+
       // Verify database queries were called correctly
       expect(prisma.experience.count).toHaveBeenCalledWith({
-        where: { userId: parseInt(mockUser.id) }
+        where: { userId: parseInt(mockUser.id) },
       });
       expect(prisma.prompt.count).toHaveBeenCalledWith({
-        where: { experience: { userId: parseInt(mockUser.id) } }
+        where: { experience: { userId: parseInt(mockUser.id) } },
       });
     });
   });
@@ -125,13 +125,13 @@ describe('User Profile Integration', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { id: '2' } // Different user ID
+        query: { id: '2' }, // Different user ID
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data).toHaveProperty('username');
       expect(data).toHaveProperty('experience_count');
@@ -143,7 +143,7 @@ describe('User Profile Integration', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { id: '1' }
+        query: { id: '1' },
       });
 
       await handler(req, res);
@@ -156,13 +156,13 @@ describe('User Profile Integration', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { id: '99999' }
+        query: { id: '99999' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(404);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.error).toMatch(/user.*not found/i);
     });
@@ -173,7 +173,7 @@ describe('User Profile Integration', () => {
       const newUser = {
         ...mockUserProfile,
         experienceCount: 0,
-        promptCount: 0
+        promptCount: 0,
       };
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(newUser);
@@ -182,13 +182,13 @@ describe('User Profile Integration', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { id: '1' }
+        query: { id: '1' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.experience_count).toBe(0);
       expect(data.prompt_count).toBe(0);
@@ -198,7 +198,7 @@ describe('User Profile Integration', () => {
       const activeUser = {
         ...mockUserProfile,
         experienceCount: 150,
-        promptCount: 500
+        promptCount: 500,
       };
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(activeUser);
@@ -207,13 +207,13 @@ describe('User Profile Integration', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { id: '1' }
+        query: { id: '1' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.experience_count).toBe(150);
       expect(data.prompt_count).toBe(500);
@@ -224,7 +224,7 @@ describe('User Profile Integration', () => {
     it('should handle users with null bio', async () => {
       const userWithoutBio = {
         ...mockUserProfile,
-        bio: null
+        bio: null,
       };
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(userWithoutBio);
@@ -233,13 +233,13 @@ describe('User Profile Integration', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { id: '1' }
+        query: { id: '1' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.bio).toBeNull();
       expect(data.username).toBe(mockUser.username);
@@ -248,7 +248,7 @@ describe('User Profile Integration', () => {
     it('should handle users with optional email', async () => {
       const userWithoutEmail = {
         ...mockUserProfile,
-        email: null
+        email: null,
       };
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(userWithoutEmail);
@@ -257,13 +257,13 @@ describe('User Profile Integration', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { id: '1' }
+        query: { id: '1' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.email).toBeNull();
       expect(data.username).toBe(mockUser.username);
@@ -272,11 +272,13 @@ describe('User Profile Integration', () => {
 
   describe('Error Handling', () => {
     it('should handle database errors gracefully', async () => {
-      (prisma.user.findUnique as jest.Mock).mockRejectedValue(new Error('Database error'));
+      (prisma.user.findUnique as jest.Mock).mockRejectedValue(
+        new Error('Database error')
+      );
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { id: '1' }
+        query: { id: '1' },
       });
 
       await handler(req, res);
@@ -287,13 +289,13 @@ describe('User Profile Integration', () => {
     it('should validate user ID parameter', async () => {
       const { req, res } = createMocks({
         method: 'GET',
-        query: { id: 'invalid' }
+        query: { id: 'invalid' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(400);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.error).toMatch(/invalid.*id/i);
     });

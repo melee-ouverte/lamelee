@@ -52,17 +52,26 @@ const AI_ASSISTANTS = [
   { value: 'other', label: 'Other' },
 ];
 
-export default function Feed({ experiences, pagination, filters, availableTags }: FeedProps) {
+export default function Feed({
+  experiences,
+  pagination,
+  filters,
+  availableTags,
+}: FeedProps) {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState(filters.search || '');
-  const [selectedAiAssistant, setSelectedAiAssistant] = useState(filters.aiAssistant || '');
-  const [selectedTags, setSelectedTags] = useState<string[]>(filters.tags || []);
+  const [selectedAiAssistant, setSelectedAiAssistant] = useState(
+    filters.aiAssistant || ''
+  );
+  const [selectedTags, setSelectedTags] = useState<string[]>(
+    filters.tags || []
+  );
   const [showFilters, setShowFilters] = useState(false);
 
   // Update URL when filters change
   const updateFilters = (newFilters: Partial<typeof filters>) => {
     const query: any = { ...router.query };
-    
+
     // Update search
     if (newFilters.search !== undefined) {
       if (newFilters.search) {
@@ -108,9 +117,9 @@ export default function Feed({ experiences, pagination, filters, availableTags }
 
   const handleTagToggle = (tag: string) => {
     const newTags = selectedTags.includes(tag)
-      ? selectedTags.filter(t => t !== tag)
+      ? selectedTags.filter((t) => t !== tag)
       : [...selectedTags, tag];
-    
+
     setSelectedTags(newTags);
     updateFilters({ tags: newTags });
   };
@@ -122,13 +131,19 @@ export default function Feed({ experiences, pagination, filters, availableTags }
     updateFilters({ search: '', aiAssistant: '', tags: [] });
   };
 
-  const hasActiveFilters = filters.search || filters.aiAssistant || (filters.tags && filters.tags.length > 0);
+  const hasActiveFilters =
+    filters.search ||
+    filters.aiAssistant ||
+    (filters.tags && filters.tags.length > 0);
 
   return (
     <Layout>
       <Head>
         <title>Feed - AI Coding Assistant Experience Platform</title>
-        <meta name="description" content="Discover and explore AI coding assistant experiences shared by the community" />
+        <meta
+          name="description"
+          content="Discover and explore AI coding assistant experiences shared by the community"
+        />
       </Head>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -148,9 +163,14 @@ export default function Feed({ experiences, pagination, filters, availableTags }
             </div>
 
             {/* Search */}
-            <div className={`space-y-6 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+            <div
+              className={`space-y-6 ${showFilters ? 'block' : 'hidden lg:block'}`}
+            >
               <form onSubmit={handleSearch} className="space-y-2">
-                <label htmlFor="search" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="search"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Search
                 </label>
                 <div className="flex space-x-2">
@@ -176,7 +196,10 @@ export default function Feed({ experiences, pagination, filters, availableTags }
 
               {/* AI Assistant Filter */}
               <div className="space-y-2">
-                <label htmlFor="aiAssistant" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="aiAssistant"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   AI Assistant
                 </label>
                 <select
@@ -256,7 +279,9 @@ export default function Feed({ experiences, pagination, filters, availableTags }
             {/* Active Filters */}
             {hasActiveFilters && (
               <div className="flex flex-wrap items-center gap-2 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                <span className="text-sm font-medium text-gray-700">Active filters:</span>
+                <span className="text-sm font-medium text-gray-700">
+                  Active filters:
+                </span>
                 {filters.search && (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     Search: {filters.search}
@@ -264,11 +289,17 @@ export default function Feed({ experiences, pagination, filters, availableTags }
                 )}
                 {filters.aiAssistant && (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    {AI_ASSISTANTS.find(a => a.value === filters.aiAssistant)?.label}
+                    {
+                      AI_ASSISTANTS.find((a) => a.value === filters.aiAssistant)
+                        ?.label
+                    }
                   </span>
                 )}
-                {filters.tags?.map(tag => (
-                  <span key={tag} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                {filters.tags?.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+                  >
                     {tag}
                   </span>
                 ))}
@@ -278,7 +309,8 @@ export default function Feed({ experiences, pagination, filters, availableTags }
             {/* Results Header */}
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">
-                {pagination.total} experience{pagination.total !== 1 ? 's' : ''} found
+                {pagination.total} experience{pagination.total !== 1 ? 's' : ''}{' '}
+                found
                 {hasActiveFilters && ' (filtered)'}
               </div>
               <div className="text-sm text-gray-600">
@@ -296,10 +328,9 @@ export default function Feed({ experiences, pagination, filters, availableTags }
                   No experiences found
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  {hasActiveFilters 
+                  {hasActiveFilters
                     ? 'Try adjusting your filters to see more results.'
-                    : 'Be the first to share an AI coding assistant experience!'
-                  }
+                    : 'Be the first to share an AI coding assistant experience!'}
                 </p>
                 {hasActiveFilters ? (
                   <button
@@ -320,8 +351,8 @@ export default function Feed({ experiences, pagination, filters, availableTags }
             ) : (
               <div className="space-y-6">
                 {experiences.map((experience) => (
-                  <ExperienceCard 
-                    key={experience.id} 
+                  <ExperienceCard
+                    key={experience.id}
                     experience={{
                       id: parseInt(experience.id),
                       title: experience.title,
@@ -354,7 +385,10 @@ export default function Feed({ experiences, pagination, filters, availableTags }
                   <Link
                     href={{
                       pathname: router.pathname,
-                      query: { ...router.query, page: Math.max(1, pagination.page - 1) },
+                      query: {
+                        ...router.query,
+                        page: Math.max(1, pagination.page - 1),
+                      },
                     }}
                     className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
                       pagination.page <= 1
@@ -367,7 +401,13 @@ export default function Feed({ experiences, pagination, filters, availableTags }
                   <Link
                     href={{
                       pathname: router.pathname,
-                      query: { ...router.query, page: Math.min(pagination.totalPages, pagination.page + 1) },
+                      query: {
+                        ...router.query,
+                        page: Math.min(
+                          pagination.totalPages,
+                          pagination.page + 1
+                        ),
+                      },
                     }}
                     className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
                       pagination.page >= pagination.totalPages
@@ -387,9 +427,13 @@ export default function Feed({ experiences, pagination, filters, availableTags }
                       </span>{' '}
                       to{' '}
                       <span className="font-medium">
-                        {Math.min(pagination.page * pagination.limit, pagination.total)}
+                        {Math.min(
+                          pagination.page * pagination.limit,
+                          pagination.total
+                        )}
                       </span>{' '}
-                      of <span className="font-medium">{pagination.total}</span> results
+                      of <span className="font-medium">{pagination.total}</span>{' '}
+                      results
                     </p>
                   </div>
                   <div>
@@ -397,7 +441,10 @@ export default function Feed({ experiences, pagination, filters, availableTags }
                       <Link
                         href={{
                           pathname: router.pathname,
-                          query: { ...router.query, page: Math.max(1, pagination.page - 1) },
+                          query: {
+                            ...router.query,
+                            page: Math.max(1, pagination.page - 1),
+                          },
                         }}
                         className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${
                           pagination.page <= 1
@@ -407,32 +454,41 @@ export default function Feed({ experiences, pagination, filters, availableTags }
                       >
                         <ChevronLeft className="h-5 w-5" />
                       </Link>
-                      
+
                       {/* Page numbers */}
-                      {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                        const page = i + 1;
-                        return (
-                          <Link
-                            key={page}
-                            href={{
-                              pathname: router.pathname,
-                              query: { ...router.query, page },
-                            }}
-                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                              page === pagination.page
-                                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                            }`}
-                          >
-                            {page}
-                          </Link>
-                        );
-                      })}
-                      
+                      {Array.from(
+                        { length: Math.min(5, pagination.totalPages) },
+                        (_, i) => {
+                          const page = i + 1;
+                          return (
+                            <Link
+                              key={page}
+                              href={{
+                                pathname: router.pathname,
+                                query: { ...router.query, page },
+                              }}
+                              className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                page === pagination.page
+                                  ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                                  : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                              }`}
+                            >
+                              {page}
+                            </Link>
+                          );
+                        }
+                      )}
+
                       <Link
                         href={{
                           pathname: router.pathname,
-                          query: { ...router.query, page: Math.min(pagination.totalPages, pagination.page + 1) },
+                          query: {
+                            ...router.query,
+                            page: Math.min(
+                              pagination.totalPages,
+                              pagination.page + 1
+                            ),
+                          },
                         }}
                         className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 text-sm font-medium ${
                           pagination.page >= pagination.totalPages
@@ -456,15 +512,18 @@ export default function Feed({ experiences, pagination, filters, availableTags }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { query } = context;
-  
+
   // Parse query parameters
   const page = parseInt(query.page as string) || 1;
   const limit = 12;
-  const search = query.search as string || '';
-  const aiAssistant = query.aiAssistant as string || '';
-  const tags = Array.isArray(query.tags) ? query.tags as string[] : 
-                query.tags ? [query.tags as string] : [];
-  const user = query.user as string || '';
+  const search = (query.search as string) || '';
+  const aiAssistant = (query.aiAssistant as string) || '';
+  const tags = Array.isArray(query.tags)
+    ? (query.tags as string[])
+    : query.tags
+      ? [query.tags as string]
+      : [];
+  const user = (query.user as string) || '';
 
   try {
     // Build where clause

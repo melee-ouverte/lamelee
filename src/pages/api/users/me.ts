@@ -1,6 +1,6 @@
 /**
  * T036: /api/users/me - Current User Profile
- * 
+ *
  * Handles GET and PUT requests for the current authenticated user's profile.
  */
 
@@ -10,7 +10,10 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { userProfileSchema, validationUtils } from '@/lib/validations';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     switch (req.method) {
       case 'GET':
@@ -84,9 +87,13 @@ async function handleGetCurrentUser(req: NextApiRequest, res: NextApiResponse) {
       select: { rating: true },
     });
 
-    const averageRatingGiven = promptRatingsGiven.length > 0
-      ? promptRatingsGiven.reduce((sum: number, r: any) => sum + r.rating, 0) / promptRatingsGiven.length
-      : 0;
+    const averageRatingGiven =
+      promptRatingsGiven.length > 0
+        ? promptRatingsGiven.reduce(
+            (sum: number, r: any) => sum + r.rating,
+            0
+          ) / promptRatingsGiven.length
+        : 0;
 
     // Format response
     const formattedUser = {
@@ -117,7 +124,6 @@ async function handleGetCurrentUser(req: NextApiRequest, res: NextApiResponse) {
     };
 
     res.status(200).json({ user: formattedUser });
-
   } catch (error) {
     console.error('Error fetching current user:', error);
     res.status(500).json({ error: 'Failed to fetch user profile' });
@@ -127,7 +133,10 @@ async function handleGetCurrentUser(req: NextApiRequest, res: NextApiResponse) {
 /**
  * PUT /api/users/me - Update current user profile
  */
-async function handleUpdateCurrentUser(req: NextApiRequest, res: NextApiResponse) {
+async function handleUpdateCurrentUser(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   // Check authentication
   const session = await getServerSession(req, res, authOptions);
   if (!session?.user) {
@@ -188,7 +197,6 @@ async function handleUpdateCurrentUser(req: NextApiRequest, res: NextApiResponse
       message: 'Profile updated successfully',
       user: formattedUser,
     });
-
   } catch (error) {
     console.error('Error updating user profile:', error);
     res.status(500).json({ error: 'Failed to update profile' });

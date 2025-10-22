@@ -23,7 +23,9 @@ const CLEANUP_CONFIG = {
 export async function cleanupOldData(): Promise<number> {
   try {
     const cutoffDate = new Date();
-    cutoffDate.setFullYear(cutoffDate.getFullYear() - CLEANUP_CONFIG.RETENTION_YEARS);
+    cutoffDate.setFullYear(
+      cutoffDate.getFullYear() - CLEANUP_CONFIG.RETENTION_YEARS
+    );
 
     // Find users older than 2 years that haven't been soft-deleted
     const usersToDelete = await prisma.user.findMany({
@@ -39,7 +41,7 @@ export async function cleanupOldData(): Promise<number> {
       return 0;
     }
 
-    const userIds = usersToDelete.map(u => u.id);
+    const userIds = usersToDelete.map((u) => u.id);
 
     // Start transaction for atomic operations
     const result = await prisma.$transaction(async (tx) => {
@@ -51,7 +53,7 @@ export async function cleanupOldData(): Promise<number> {
 
       // Mark their experiences for deletion
       await tx.experience.updateMany({
-        where: { 
+        where: {
           userId: { in: userIds },
           deletedAt: null,
         },
@@ -65,10 +67,10 @@ export async function cleanupOldData(): Promise<number> {
       });
 
       if (experiences.length > 0) {
-        const experienceIds = experiences.map(e => e.id);
-        
+        const experienceIds = experiences.map((e) => e.id);
+
         await tx.prompt.updateMany({
-          where: { 
+          where: {
             experienceId: { in: experienceIds },
             deletedAt: null,
           },
@@ -78,7 +80,7 @@ export async function cleanupOldData(): Promise<number> {
 
       // Mark comments for deletion
       await tx.comment.updateMany({
-        where: { 
+        where: {
           userId: { in: userIds },
           deletedAt: null,
         },
@@ -109,7 +111,9 @@ export async function cleanupOldData(): Promise<number> {
 export async function hardDeleteSoftDeleted(): Promise<number> {
   try {
     const gracePeriodDate = new Date();
-    gracePeriodDate.setDate(gracePeriodDate.getDate() - CLEANUP_CONFIG.GRACE_PERIOD_DAYS);
+    gracePeriodDate.setDate(
+      gracePeriodDate.getDate() - CLEANUP_CONFIG.GRACE_PERIOD_DAYS
+    );
 
     // Find users soft-deleted more than 30 days ago
     const usersToHardDelete = await prisma.user.findMany({
@@ -127,7 +131,7 @@ export async function hardDeleteSoftDeleted(): Promise<number> {
       return 0;
     }
 
-    const userIds = usersToHardDelete.map(u => u.id);
+    const userIds = usersToHardDelete.map((u) => u.id);
 
     // Hard delete in correct order due to foreign key constraints
     const result = await prisma.$transaction(async (tx) => {
@@ -153,14 +157,14 @@ export async function hardDeleteSoftDeleted(): Promise<number> {
       });
 
       if (experiences.length > 0) {
-        const experienceIds = experiences.map(e => e.id);
-        
+        const experienceIds = experiences.map((e) => e.id);
+
         // Delete prompt ratings for these experiences
         await tx.promptRating.deleteMany({
-          where: { 
-            prompt: { 
-              experienceId: { in: experienceIds } 
-            } 
+          where: {
+            prompt: {
+              experienceId: { in: experienceIds },
+            },
           },
         });
 
@@ -197,7 +201,7 @@ export async function hardDeleteSoftDeleted(): Promise<number> {
     console.log(`Hard deleted ${result} users and all associated data`, {
       gracePeriodDate: gracePeriodDate.toISOString(),
       userIds,
-      usernames: usersToHardDelete.map(u => u.username),
+      usernames: usersToHardDelete.map((u) => u.username),
       timestamp: new Date().toISOString(),
     });
 
@@ -247,7 +251,7 @@ export async function exportUserData(userId: number): Promise<any> {
         createdAt: userData.createdAt,
         githubUsername: userData.githubUsername,
       },
-      experiences: userData.experiences.map(exp => ({
+      experiences: userData.experiences.map((exp) => ({
         id: exp.id,
         title: exp.title,
         description: exp.description,
@@ -255,37 +259,37 @@ export async function exportUserData(userId: number): Promise<any> {
         aiAssistant: exp.aiAssistant,
         tags: exp.tags,
         createdAt: exp.createdAt,
-        prompts: exp.prompts.map(prompt => ({
+        prompts: exp.prompts.map((prompt) => ({
           id: prompt.id,
           content: prompt.content,
           context: prompt.context,
           orderIndex: prompt.orderIndex,
           createdAt: prompt.createdAt,
         })),
-        comments: exp.comments.map(comment => ({
+        comments: exp.comments.map((comment) => ({
           id: comment.id,
           content: comment.content,
           createdAt: comment.createdAt,
         })),
-        reactions: exp.reactions.map(reaction => ({
+        reactions: exp.reactions.map((reaction) => ({
           id: reaction.id,
           reactionType: reaction.reactionType,
           createdAt: reaction.createdAt,
         })),
       })),
-      comments: userData.comments.map(comment => ({
+      comments: userData.comments.map((comment) => ({
         id: comment.id,
         content: comment.content,
         experienceId: comment.experienceId,
         createdAt: comment.createdAt,
       })),
-      reactions: userData.reactions.map(reaction => ({
+      reactions: userData.reactions.map((reaction) => ({
         id: reaction.id,
         reactionType: reaction.reactionType,
         experienceId: reaction.experienceId,
         createdAt: reaction.createdAt,
       })),
-      promptRatings: userData.promptRatings.map(rating => ({
+      promptRatings: userData.promptRatings.map((rating) => ({
         id: rating.id,
         rating: rating.rating,
         promptId: rating.promptId,
@@ -302,7 +306,10 @@ export async function exportUserData(userId: number): Promise<any> {
 /**
  * Scheduled cleanup job that can be run daily
  */
-export async function runScheduledCleanup(): Promise<{ softDeleted: number; hardDeleted: number }> {
+export async function runScheduledCleanup(): Promise<{
+  softDeleted: number;
+  hardDeleted: number;
+}> {
   try {
     console.log('Starting scheduled cleanup job...', {
       timestamp: new Date().toISOString(),
@@ -345,10 +352,14 @@ export async function getCleanupStats() {
     ]);
 
     const cutoffDate = new Date();
-    cutoffDate.setFullYear(cutoffDate.getFullYear() - CLEANUP_CONFIG.RETENTION_YEARS);
+    cutoffDate.setFullYear(
+      cutoffDate.getFullYear() - CLEANUP_CONFIG.RETENTION_YEARS
+    );
 
     const gracePeriodDate = new Date();
-    gracePeriodDate.setDate(gracePeriodDate.getDate() - CLEANUP_CONFIG.GRACE_PERIOD_DAYS);
+    gracePeriodDate.setDate(
+      gracePeriodDate.getDate() - CLEANUP_CONFIG.GRACE_PERIOD_DAYS
+    );
 
     const [eligibleForSoftDelete, eligibleForHardDelete] = await Promise.all([
       prisma.user.count({

@@ -1,9 +1,9 @@
 /**
  * Contract Test: GET /api/users/{id}
- * 
+ *
  * This test validates the API contract for fetching user profile by ID.
  * According to the OpenAPI specification in contracts/api.yaml
- * 
+ *
  * Test Status: RED (Must fail before implementation)
  * Related Task: T015
  * Implementation Task: T042
@@ -16,15 +16,15 @@ describe('/api/users/{id} GET', () => {
   it('should return user profile with statistics', async () => {
     const { req, res } = createMocks({
       method: 'GET',
-      query: { id: '1' }
+      query: { id: '1' },
     });
 
     await handler(req, res);
 
     expect(res._getStatusCode()).toBe(200);
-    
+
     const data = JSON.parse(res._getData());
-    
+
     // Validate response structure matches OpenAPI UserProfile schema
     expect(data).toHaveProperty('id');
     expect(data).toHaveProperty('github_id');
@@ -35,7 +35,7 @@ describe('/api/users/{id} GET', () => {
     expect(data).toHaveProperty('created_at');
     expect(data).toHaveProperty('experience_count');
     expect(data).toHaveProperty('prompt_count');
-    
+
     // Validate statistics
     expect(typeof data.experience_count).toBe('number');
     expect(typeof data.prompt_count).toBe('number');
@@ -46,13 +46,13 @@ describe('/api/users/{id} GET', () => {
   it('should return 404 for non-existent user', async () => {
     const { req, res } = createMocks({
       method: 'GET',
-      query: { id: '99999' }
+      query: { id: '99999' },
     });
 
     await handler(req, res);
 
     expect(res._getStatusCode()).toBe(404);
-    
+
     const data = JSON.parse(res._getData());
     expect(data).toHaveProperty('error');
     expect(data.error).toMatch(/user.*not found/i);
@@ -61,13 +61,13 @@ describe('/api/users/{id} GET', () => {
   it('should validate user ID parameter', async () => {
     const { req, res } = createMocks({
       method: 'GET',
-      query: { id: 'invalid' }
+      query: { id: 'invalid' },
     });
 
     await handler(req, res);
 
     expect(res._getStatusCode()).toBe(400);
-    
+
     const data = JSON.parse(res._getData());
     expect(data).toHaveProperty('error');
     expect(data.error).toMatch(/invalid.*id/i);
@@ -76,9 +76,9 @@ describe('/api/users/{id} GET', () => {
   it('should require authentication', async () => {
     const { req, res } = createMocks({
       method: 'GET',
-      query: { id: '1' }
+      query: { id: '1' },
     });
-    
+
     // No authentication provided
     delete req.headers.authorization;
 
@@ -91,7 +91,7 @@ describe('/api/users/{id} GET', () => {
   it('should handle invalid method', async () => {
     const { req, res } = createMocks({
       method: 'PATCH', // Invalid method
-      query: { id: '1' }
+      query: { id: '1' },
     });
 
     await handler(req, res);

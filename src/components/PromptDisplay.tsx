@@ -12,7 +12,10 @@ interface PromptDisplayProps {
   showActions?: boolean;
 }
 
-export default function PromptDisplay({ prompt, showActions = true }: PromptDisplayProps) {
+export default function PromptDisplay({
+  prompt,
+  showActions = true,
+}: PromptDisplayProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -73,7 +76,9 @@ export default function PromptDisplay({ prompt, showActions = true }: PromptDisp
       {/* Results Achieved */}
       {prompt.resultsAchieved && (
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-gray-900">Results Achieved</h4>
+          <h4 className="text-sm font-medium text-gray-900">
+            Results Achieved
+          </h4>
           <div className="text-sm text-gray-600 bg-green-50 border border-green-200 rounded-md p-3">
             {prompt.resultsAchieved}
           </div>

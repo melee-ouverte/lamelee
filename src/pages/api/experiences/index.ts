@@ -1,6 +1,6 @@
 /**
  * T031: /api/experiences/index - Experience List and Creation
- * 
+ *
  * Handles GET (list experiences) and POST (create experience) requests
  * for the AI Coding Assistant Experience Platform.
  */
@@ -9,9 +9,16 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { experienceSchema, searchSchema, validationUtils } from '@/lib/validations';
+import {
+  experienceSchema,
+  searchSchema,
+  validationUtils,
+} from '@/lib/validations';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     switch (req.method) {
       case 'GET':
@@ -41,7 +48,7 @@ async function handleGetExperiences(req: NextApiRequest, res: NextApiResponse) {
     tags: req.query.tags as string,
     page: req.query.page ? parseInt(req.query.page as string) : 1,
     limit: req.query.limit ? parseInt(req.query.limit as string) : 20,
-    sort: req.query.sort as string || 'recent',
+    sort: (req.query.sort as string) || 'recent',
   });
 
   if (!validation.success) {
@@ -122,14 +129,14 @@ async function handleGetExperiences(req: NextApiRequest, res: NextApiResponse) {
           },
         },
       }),
-      prisma.experience.count({ 
+      prisma.experience.count({
         where: {
           ...where,
           deletedAt: null,
           user: {
             deletedAt: null,
           },
-        }
+        },
       }),
     ]);
 
@@ -175,7 +182,6 @@ async function handleGetExperiences(req: NextApiRequest, res: NextApiResponse) {
         sort,
       },
     });
-
   } catch (error) {
     console.error('Error fetching experiences:', error);
     res.status(500).json({ error: 'Failed to fetch experiences' });
@@ -185,7 +191,10 @@ async function handleGetExperiences(req: NextApiRequest, res: NextApiResponse) {
 /**
  * POST /api/experiences - Create new experience
  */
-async function handleCreateExperience(req: NextApiRequest, res: NextApiResponse) {
+async function handleCreateExperience(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   // Check authentication
   const session = await getServerSession(req, res, authOptions);
   if (!session?.user) {
@@ -260,7 +269,6 @@ async function handleCreateExperience(req: NextApiRequest, res: NextApiResponse)
       message: 'Experience created successfully',
       experience: formattedExperience,
     });
-
   } catch (error) {
     console.error('Error creating experience:', error);
     res.status(500).json({ error: 'Failed to create experience' });

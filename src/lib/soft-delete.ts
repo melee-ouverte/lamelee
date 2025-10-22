@@ -1,6 +1,6 @@
 /**
  * T063: Soft Delete Service
- * 
+ *
  * Implements comprehensive soft delete functionality for User and Experience models
  * with proper cascade handling and data retention policy support.
  */
@@ -13,12 +13,12 @@ export interface SoftDeleteOptions {
    * Whether to cascade soft delete to related records
    */
   cascade?: boolean;
-  
+
   /**
    * Custom deleted timestamp (useful for scheduled deletions)
    */
   deletedAt?: Date;
-  
+
   /**
    * Additional metadata to store with the deletion
    */
@@ -37,19 +37,21 @@ export class SoftDeleteService {
         // Mark user as deleted
         const deletedUser = await tx.user.update({
           where: { id: userId },
-          data: { 
+          data: {
             deletedAt,
             // Store deletion reason in bio field as metadata
-            ...(deletionReason && { bio: `[DELETED: ${deletionReason}] ${new Date().toISOString()}` })
+            ...(deletionReason && {
+              bio: `[DELETED: ${deletionReason}] ${new Date().toISOString()}`,
+            }),
           },
         });
 
         let deletedExperiences: any[] = [];
-        
+
         if (cascade) {
           // Get user's active experiences
           const userExperiences = await tx.experience.findMany({
-            where: { 
+            where: {
               userId,
               deletedAt: null,
             },
@@ -59,7 +61,7 @@ export class SoftDeleteService {
           // Soft delete all user experiences
           if (userExperiences.length > 0) {
             await tx.experience.updateMany({
-              where: { 
+              where: {
                 userId,
                 deletedAt: null,
               },
@@ -68,8 +70,10 @@ export class SoftDeleteService {
 
             // Soft delete all prompts from user experiences
             await tx.prompt.updateMany({
-              where: { 
-                experienceId: { in: userExperiences.map((e: { id: number }) => e.id) },
+              where: {
+                experienceId: {
+                  in: userExperiences.map((e: { id: number }) => e.id),
+                },
                 deletedAt: null,
               },
               data: { deletedAt },
@@ -77,8 +81,10 @@ export class SoftDeleteService {
 
             // Soft delete all comments from user experiences
             await tx.comment.updateMany({
-              where: { 
-                experienceId: { in: userExperiences.map((e: { id: number }) => e.id) },
+              where: {
+                experienceId: {
+                  in: userExperiences.map((e: { id: number }) => e.id),
+                },
                 deletedAt: null,
               },
               data: { deletedAt },
@@ -89,7 +95,7 @@ export class SoftDeleteService {
 
           // Also soft delete user's comments on other experiences
           await tx.comment.updateMany({
-            where: { 
+            where: {
               userId,
               deletedAt: null,
             },
@@ -105,14 +111,19 @@ export class SoftDeleteService {
       });
     } catch (error) {
       console.error(`Failed to soft delete user ${userId}:`, error);
-      throw new Error(`Soft delete failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Soft delete failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
   /**
    * Soft delete an experience and cascade to related records
    */
-  static async deleteExperience(experienceId: number, options: SoftDeleteOptions = {}) {
+  static async deleteExperience(
+    experienceId: number,
+    options: SoftDeleteOptions = {}
+  ) {
     const { deletedAt = new Date(), deletionReason } = options;
 
     try {
@@ -120,18 +131,18 @@ export class SoftDeleteService {
         // Mark experience as deleted
         const deletedExperience = await tx.experience.update({
           where: { id: experienceId },
-          data: { 
+          data: {
             deletedAt,
             // Store deletion reason in description
-            ...(deletionReason && { 
-              description: `[DELETED: ${deletionReason}] ${new Date().toISOString()}\n\n${await tx.experience.findUnique({ where: { id: experienceId }, select: { description: true } }).then((e: { description: string | null } | null) => e?.description || '')}`
-            })
+            ...(deletionReason && {
+              description: `[DELETED: ${deletionReason}] ${new Date().toISOString()}\n\n${await tx.experience.findUnique({ where: { id: experienceId }, select: { description: true } }).then((e: { description: string | null } | null) => e?.description || '')}`,
+            }),
           },
         });
 
         // Soft delete all prompts
         await tx.prompt.updateMany({
-          where: { 
+          where: {
             experienceId,
             deletedAt: null,
           },
@@ -140,7 +151,7 @@ export class SoftDeleteService {
 
         // Soft delete all comments
         const deletedComments = await tx.comment.updateMany({
-          where: { 
+          where: {
             experienceId,
             deletedAt: null,
           },
@@ -161,7 +172,9 @@ export class SoftDeleteService {
       });
     } catch (error) {
       console.error(`Failed to soft delete experience ${experienceId}:`, error);
-      throw new Error(`Soft delete failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Soft delete failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -184,11 +197,14 @@ export class SoftDeleteService {
         // Restore user
         const restoredUser = await tx.user.update({
           where: { id: userId },
-          data: { 
+          data: {
             deletedAt: null,
             // Clear deletion metadata from bio if it exists
-            bio: await tx.user.findUnique({ where: { id: userId }, select: { bio: true } })
-              .then((u: { bio: string | null } | null) => u?.bio?.startsWith('[DELETED:') ? null : u?.bio),
+            bio: await tx.user
+              .findUnique({ where: { id: userId }, select: { bio: true } })
+              .then((u: { bio: string | null } | null) =>
+                u?.bio?.startsWith('[DELETED:') ? null : u?.bio
+              ),
           },
         });
 
@@ -199,7 +215,9 @@ export class SoftDeleteService {
       });
     } catch (error) {
       console.error(`Failed to restore user ${userId}:`, error);
-      throw new Error(`User restoration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `User restoration failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -232,14 +250,22 @@ export class SoftDeleteService {
         // Restore experience
         const restoredExperience = await tx.experience.update({
           where: { id: experienceId },
-          data: { 
+          data: {
             deletedAt: null,
             // Clear deletion metadata from description if it exists
-            description: await tx.experience.findUnique({ where: { id: experienceId }, select: { description: true } })
+            description: await tx.experience
+              .findUnique({
+                where: { id: experienceId },
+                select: { description: true },
+              })
               .then((e: { description: string | null } | null) => {
                 const desc = e?.description || '';
-                const deletedPrefix = desc.match(/^\[DELETED:.*?\]\s*\d{4}-\d{2}-\d{2}T.*?\n\n/);
-                return deletedPrefix ? desc.replace(deletedPrefix[0], '') : desc;
+                const deletedPrefix = desc.match(
+                  /^\[DELETED:.*?\]\s*\d{4}-\d{2}-\d{2}T.*?\n\n/
+                );
+                return deletedPrefix
+                  ? desc.replace(deletedPrefix[0], '')
+                  : desc;
               }),
           },
         });
@@ -263,7 +289,9 @@ export class SoftDeleteService {
       });
     } catch (error) {
       console.error(`Failed to restore experience ${experienceId}:`, error);
-      throw new Error(`Experience restoration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Experience restoration failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -307,7 +335,12 @@ export class SoftDeleteService {
               lt: olderThan,
             },
           },
-          select: { id: true, experienceId: true, userId: true, deletedAt: true },
+          select: {
+            id: true,
+            experienceId: true,
+            userId: true,
+            deletedAt: true,
+          },
         }),
       ]);
 
@@ -316,7 +349,8 @@ export class SoftDeleteService {
         experiences,
         prompts,
         comments,
-        total: users.length + experiences.length + prompts.length + comments.length,
+        total:
+          users.length + experiences.length + prompts.length + comments.length,
       };
     } catch (error) {
       console.error('Failed to get soft deleted records:', error);
@@ -343,7 +377,9 @@ export class SoftDeleteService {
         prisma.user.count({ where: { deletedAt: { gte: thirtyDaysAgo } } }),
         prisma.experience.count(),
         prisma.experience.count({ where: { deletedAt: { not: null } } }),
-        prisma.experience.count({ where: { deletedAt: { gte: thirtyDaysAgo } } }),
+        prisma.experience.count({
+          where: { deletedAt: { gte: thirtyDaysAgo } },
+        }),
       ]);
 
       return {

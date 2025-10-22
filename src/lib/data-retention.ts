@@ -1,6 +1,6 @@
 /**
  * T069-T070: Data Retention & Cleanup Service
- * 
+ *
  * Implements automated data cleanup jobs with configurable retention policies.
  * Handles both hard deletion of old soft-deleted records and archival of aged data.
  */
@@ -13,17 +13,17 @@ export interface RetentionPolicy {
    * How long to keep data before soft deletion (in days)
    */
   maxAge: number;
-  
+
   /**
    * Grace period after soft deletion before hard deletion (in days)
    */
   gracePeriod: number;
-  
+
   /**
    * Whether to archive data before deletion
    */
   enableArchiving: boolean;
-  
+
   /**
    * Batch size for processing records
    */
@@ -94,21 +94,26 @@ export class DataRetentionService {
   /**
    * Archive data to external storage (placeholder - would integrate with AWS S3, etc.)
    */
-  private static async archiveRecords(tableName: string, records: any[]): Promise<number> {
+  private static async archiveRecords(
+    tableName: string,
+    records: any[]
+  ): Promise<number> {
     // In a real implementation, this would:
     // 1. Format records for archival
     // 2. Upload to cloud storage (S3, GCS, etc.)
     // 3. Create archive index entries
     // 4. Verify archive integrity
-    
-    console.log(`[ARCHIVE] Would archive ${records.length} ${tableName} records`);
-    
+
+    console.log(
+      `[ARCHIVE] Would archive ${records.length} ${tableName} records`
+    );
+
     // Simulate archiving process
     const archiveData = {
       timestamp: new Date().toISOString(),
       table: tableName,
       recordCount: records.length,
-      records: records.map(record => ({
+      records: records.map((record) => ({
         id: record.id,
         createdAt: record.createdAt,
         deletedAt: record.deletedAt,
@@ -123,24 +128,28 @@ export class DataRetentionService {
         }),
       })),
     };
-    
+
     // In production, save this to external storage
     console.log(`[ARCHIVE] Archive data prepared:`, {
       table: tableName,
       count: records.length,
       size: JSON.stringify(archiveData).length,
     });
-    
+
     return records.length;
   }
 
   /**
    * Clean up soft-deleted experiences that exceed grace period
    */
-  static async cleanupSoftDeletedExperiences(policy: RetentionPolicy): Promise<CleanupResult> {
+  static async cleanupSoftDeletedExperiences(
+    policy: RetentionPolicy
+  ): Promise<CleanupResult> {
     const startTime = Date.now();
-    const cutoffDate = new Date(Date.now() - policy.gracePeriod * 24 * 60 * 60 * 1000);
-    
+    const cutoffDate = new Date(
+      Date.now() - policy.gracePeriod * 24 * 60 * 60 * 1000
+    );
+
     const result: CleanupResult = {
       operation: 'cleanup_soft_deleted_experiences',
       recordsProcessed: 0,
@@ -179,9 +188,14 @@ export class DataRetentionService {
       // Archive before deletion if enabled
       if (policy.enableArchiving) {
         try {
-          result.recordsArchived = await this.archiveRecords('experiences', expiredExperiences);
+          result.recordsArchived = await this.archiveRecords(
+            'experiences',
+            expiredExperiences
+          );
         } catch (error) {
-          result.errors.push(`Archiving failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          result.errors.push(
+            `Archiving failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
         }
       }
 
@@ -196,7 +210,7 @@ export class DataRetentionService {
 
             // Delete soft-deleted prompts
             await tx.prompt.deleteMany({
-              where: { 
+              where: {
                 experienceId: experience.id,
                 deletedAt: { not: null },
               },
@@ -204,7 +218,7 @@ export class DataRetentionService {
 
             // Delete soft-deleted comments
             await tx.comment.deleteMany({
-              where: { 
+              where: {
                 experienceId: experience.id,
                 deletedAt: { not: null },
               },
@@ -217,14 +231,15 @@ export class DataRetentionService {
           });
 
           result.recordsDeleted++;
-          console.log(`[CLEANUP] Hard deleted experience ${experience.id} and related data`);
+          console.log(
+            `[CLEANUP] Hard deleted experience ${experience.id} and related data`
+          );
         } catch (error) {
           const errorMsg = `Failed to delete experience ${experience.id}: ${error instanceof Error ? error.message : 'Unknown error'}`;
           result.errors.push(errorMsg);
           console.error(`[CLEANUP] ${errorMsg}`);
         }
       }
-
     } catch (error) {
       const errorMsg = `Cleanup query failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
       result.errors.push(errorMsg);
@@ -232,17 +247,23 @@ export class DataRetentionService {
     }
 
     result.duration = Date.now() - startTime;
-    console.log(`[CLEANUP] Experiences cleanup completed in ${result.duration}ms`);
+    console.log(
+      `[CLEANUP] Experiences cleanup completed in ${result.duration}ms`
+    );
     return result;
   }
 
   /**
    * Clean up old experiences that exceed maximum age (soft delete them)
    */
-  static async cleanupOldExperiences(policy: RetentionPolicy): Promise<CleanupResult> {
+  static async cleanupOldExperiences(
+    policy: RetentionPolicy
+  ): Promise<CleanupResult> {
     const startTime = Date.now();
-    const cutoffDate = new Date(Date.now() - policy.maxAge * 24 * 60 * 60 * 1000);
-    
+    const cutoffDate = new Date(
+      Date.now() - policy.maxAge * 24 * 60 * 60 * 1000
+    );
+
     const result: CleanupResult = {
       operation: 'cleanup_old_experiences',
       recordsProcessed: 0,
@@ -278,16 +299,17 @@ export class DataRetentionService {
           await SoftDeleteService.deleteExperience(experience.id, {
             deletionReason: 'Automatic cleanup - data retention policy',
           });
-          
+
           result.recordsDeleted++;
-          console.log(`[CLEANUP] Soft deleted old experience ${experience.id} (${experience.title})`);
+          console.log(
+            `[CLEANUP] Soft deleted old experience ${experience.id} (${experience.title})`
+          );
         } catch (error) {
           const errorMsg = `Failed to soft delete experience ${experience.id}: ${error instanceof Error ? error.message : 'Unknown error'}`;
           result.errors.push(errorMsg);
           console.error(`[CLEANUP] ${errorMsg}`);
         }
       }
-
     } catch (error) {
       const errorMsg = `Old experiences query failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
       result.errors.push(errorMsg);
@@ -295,17 +317,23 @@ export class DataRetentionService {
     }
 
     result.duration = Date.now() - startTime;
-    console.log(`[CLEANUP] Old experiences cleanup completed in ${result.duration}ms`);
+    console.log(
+      `[CLEANUP] Old experiences cleanup completed in ${result.duration}ms`
+    );
     return result;
   }
 
   /**
    * Clean up soft-deleted users that exceed grace period
    */
-  static async cleanupSoftDeletedUsers(policy: RetentionPolicy): Promise<CleanupResult> {
+  static async cleanupSoftDeletedUsers(
+    policy: RetentionPolicy
+  ): Promise<CleanupResult> {
     const startTime = Date.now();
-    const cutoffDate = new Date(Date.now() - policy.gracePeriod * 24 * 60 * 60 * 1000);
-    
+    const cutoffDate = new Date(
+      Date.now() - policy.gracePeriod * 24 * 60 * 60 * 1000
+    );
+
     const result: CleanupResult = {
       operation: 'cleanup_soft_deleted_users',
       recordsProcessed: 0,
@@ -339,9 +367,14 @@ export class DataRetentionService {
       // Archive before deletion if enabled
       if (policy.enableArchiving) {
         try {
-          result.recordsArchived = await this.archiveRecords('users', expiredUsers);
+          result.recordsArchived = await this.archiveRecords(
+            'users',
+            expiredUsers
+          );
         } catch (error) {
-          result.errors.push(`User archiving failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          result.errors.push(
+            `User archiving failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
         }
       }
 
@@ -353,14 +386,15 @@ export class DataRetentionService {
           });
 
           result.recordsDeleted++;
-          console.log(`[CLEANUP] Hard deleted user ${user.id} (${user.username})`);
+          console.log(
+            `[CLEANUP] Hard deleted user ${user.id} (${user.username})`
+          );
         } catch (error) {
           const errorMsg = `Failed to delete user ${user.id}: ${error instanceof Error ? error.message : 'Unknown error'}`;
           result.errors.push(errorMsg);
           console.error(`[CLEANUP] ${errorMsg}`);
         }
       }
-
     } catch (error) {
       const errorMsg = `User cleanup query failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
       result.errors.push(errorMsg);
@@ -375,7 +409,9 @@ export class DataRetentionService {
   /**
    * Run full cleanup process for all data types
    */
-  static async runFullCleanup(customPolicies?: Record<string, RetentionPolicy>): Promise<CleanupResult[]> {
+  static async runFullCleanup(
+    customPolicies?: Record<string, RetentionPolicy>
+  ): Promise<CleanupResult[]> {
     const policies = { ...DEFAULT_RETENTION_POLICIES, ...customPolicies };
     const results: CleanupResult[] = [];
 
@@ -384,26 +420,32 @@ export class DataRetentionService {
     try {
       // Clean up old experiences (soft delete)
       results.push(await this.cleanupOldExperiences(policies.experiences));
-      
+
       // Clean up expired soft-deleted experiences (hard delete)
-      results.push(await this.cleanupSoftDeletedExperiences(policies.experiences));
-      
+      results.push(
+        await this.cleanupSoftDeletedExperiences(policies.experiences)
+      );
+
       // Clean up expired soft-deleted users (hard delete)
       results.push(await this.cleanupSoftDeletedUsers(policies.users));
 
       // Clean up orphaned comments and prompts
       results.push(await this.cleanupOrphanedRecords());
-
     } catch (error) {
       console.error('[CLEANUP] Full cleanup failed:', error);
     }
 
     const totalDeleted = results.reduce((sum, r) => sum + r.recordsDeleted, 0);
-    const totalArchived = results.reduce((sum, r) => sum + r.recordsArchived, 0);
+    const totalArchived = results.reduce(
+      (sum, r) => sum + r.recordsArchived,
+      0
+    );
     const totalErrors = results.reduce((sum, r) => sum + r.errors.length, 0);
 
-    console.log(`[CLEANUP] Full cleanup completed: ${totalDeleted} deleted, ${totalArchived} archived, ${totalErrors} errors`);
-    
+    console.log(
+      `[CLEANUP] Full cleanup completed: ${totalDeleted} deleted, ${totalArchived} archived, ${totalErrors} errors`
+    );
+
     return results;
   }
 
@@ -412,7 +454,7 @@ export class DataRetentionService {
    */
   static async cleanupOrphanedRecords(): Promise<CleanupResult> {
     const startTime = Date.now();
-    
+
     const result: CleanupResult = {
       operation: 'cleanup_orphaned_records',
       recordsProcessed: 0,
@@ -443,8 +485,9 @@ export class DataRetentionService {
       });
 
       result.recordsDeleted = orphanedComments.count + orphanedPrompts.count;
-      console.log(`[CLEANUP] Cleaned up ${orphanedComments.count} orphaned comments and ${orphanedPrompts.count} orphaned prompts`);
-
+      console.log(
+        `[CLEANUP] Cleaned up ${orphanedComments.count} orphaned comments and ${orphanedPrompts.count} orphaned prompts`
+      );
     } catch (error) {
       const errorMsg = `Orphaned records cleanup failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
       result.errors.push(errorMsg);
@@ -463,13 +506,21 @@ export class DataRetentionService {
 
     try {
       // Experience stats
-      const [totalExperiences, activeExperiences, deletedExperiences] = await Promise.all([
-        prisma.experience.count(),
-        prisma.experience.count({ where: { deletedAt: null } }),
-        prisma.experience.count({ where: { deletedAt: { not: null } } }),
-      ]);
+      const [totalExperiences, activeExperiences, deletedExperiences] =
+        await Promise.all([
+          prisma.experience.count(),
+          prisma.experience.count({ where: { deletedAt: null } }),
+          prisma.experience.count({ where: { deletedAt: { not: null } } }),
+        ]);
 
-      const gracePeriodCutoff = new Date(Date.now() - DEFAULT_RETENTION_POLICIES.experiences.gracePeriod * 24 * 60 * 60 * 1000);
+      const gracePeriodCutoff = new Date(
+        Date.now() -
+          DEFAULT_RETENTION_POLICIES.experiences.gracePeriod *
+            24 *
+            60 *
+            60 *
+            1000
+      );
       const experiencesEligibleForCleanup = await prisma.experience.count({
         where: {
           deletedAt: {
@@ -493,7 +544,10 @@ export class DataRetentionService {
         prisma.user.count({ where: { deletedAt: { not: null } } }),
       ]);
 
-      const userGracePeriodCutoff = new Date(Date.now() - DEFAULT_RETENTION_POLICIES.users.gracePeriod * 24 * 60 * 60 * 1000);
+      const userGracePeriodCutoff = new Date(
+        Date.now() -
+          DEFAULT_RETENTION_POLICIES.users.gracePeriod * 24 * 60 * 60 * 1000
+      );
       const usersEligibleForCleanup = await prisma.user.count({
         where: {
           deletedAt: {
@@ -509,7 +563,6 @@ export class DataRetentionService {
         softDeletedRecords: deletedUsers,
         recordsEligibleForCleanup: usersEligibleForCleanup,
       };
-
     } catch (error) {
       console.error('[RETENTION] Failed to get retention stats:', error);
     }
@@ -522,16 +575,21 @@ export class DataRetentionService {
    * In production, this would be called by a cron job or task scheduler
    */
   static scheduleCleanup(intervalHours: number = 24) {
-    console.log(`[RETENTION] Scheduling cleanup to run every ${intervalHours} hours`);
-    
-    setInterval(async () => {
-      console.log('[RETENTION] Running scheduled cleanup...');
-      try {
-        await this.runFullCleanup();
-      } catch (error) {
-        console.error('[RETENTION] Scheduled cleanup failed:', error);
-      }
-    }, intervalHours * 60 * 60 * 1000);
+    console.log(
+      `[RETENTION] Scheduling cleanup to run every ${intervalHours} hours`
+    );
+
+    setInterval(
+      async () => {
+        console.log('[RETENTION] Running scheduled cleanup...');
+        try {
+          await this.runFullCleanup();
+        } catch (error) {
+          console.error('[RETENTION] Scheduled cleanup failed:', error);
+        }
+      },
+      intervalHours * 60 * 60 * 1000
+    );
 
     // Run initial cleanup
     setTimeout(() => {

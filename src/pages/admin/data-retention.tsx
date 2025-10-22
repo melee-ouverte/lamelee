@@ -1,6 +1,6 @@
 /**
  * T069-T070: Data Retention Management Interface
- * 
+ *
  * Admin interface for managing data retention policies and monitoring cleanup operations.
  */
 
@@ -53,17 +53,20 @@ export default function DataRetentionPage() {
   const [policies, setPolicies] = useState<RetentionPolicies | null>(null);
   const [loading, setLoading] = useState(true);
   const [cleanupLoading, setCleanupLoading] = useState(false);
-  const [cleanupResults, setCleanupResults] = useState<CleanupResult[] | null>(null);
+  const [cleanupResults, setCleanupResults] = useState<CleanupResult[] | null>(
+    null
+  );
   const [lastCleanup, setLastCleanup] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Check if user is admin
-  const isAdmin = session?.user?.email?.endsWith('@admin.com') || 
-                 session?.user?.username?.toLowerCase().includes('admin');
+  const isAdmin =
+    session?.user?.email?.endsWith('@admin.com') ||
+    session?.user?.username?.toLowerCase().includes('admin');
 
   useEffect(() => {
     if (status === 'loading') return;
-    
+
     if (!session) {
       router.push('/api/auth/signin');
       return;
@@ -108,7 +111,10 @@ export default function DataRetentionPage() {
     }
   };
 
-  const runCleanup = async (type: 'full' | 'experiences' | 'users' | 'orphaned', dryRun = false) => {
+  const runCleanup = async (
+    type: 'full' | 'experiences' | 'users' | 'orphaned',
+    dryRun = false
+  ) => {
     try {
       setCleanupLoading(true);
       setError(null);
@@ -134,7 +140,7 @@ export default function DataRetentionPage() {
       if (data.success) {
         setCleanupResults(Array.isArray(data.data) ? data.data : [data.data]);
         setLastCleanup(new Date().toLocaleString());
-        
+
         // Refresh stats after cleanup
         if (!dryRun) {
           await fetchData();
@@ -211,10 +217,16 @@ export default function DataRetentionPage() {
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Data Retention Management</h1>
-          <p className="text-gray-600">Monitor and manage data retention policies and cleanup operations.</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Data Retention Management
+          </h1>
+          <p className="text-gray-600">
+            Monitor and manage data retention policies and cleanup operations.
+          </p>
           {lastCleanup && (
-            <p className="text-sm text-green-600 mt-2">Last cleanup: {lastCleanup}</p>
+            <p className="text-sm text-green-600 mt-2">
+              Last cleanup: {lastCleanup}
+            </p>
           )}
         </div>
 
@@ -223,8 +235,16 @@ export default function DataRetentionPage() {
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <div className="flex">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                <svg
+                  className="h-5 w-5 text-red-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
               <div className="ml-3">
@@ -238,22 +258,32 @@ export default function DataRetentionPage() {
         {/* Current Statistics */}
         {stats && (
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Current Statistics</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+              Current Statistics
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div className="bg-blue-50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-blue-600">{stats.totalRecords.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {stats.totalRecords.toLocaleString()}
+                </div>
                 <div className="text-sm text-blue-800">Total Records</div>
               </div>
               <div className="bg-green-50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-green-600">{stats.activeRecords.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-green-600">
+                  {stats.activeRecords.toLocaleString()}
+                </div>
                 <div className="text-sm text-green-800">Active Records</div>
               </div>
               <div className="bg-yellow-50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-yellow-600">{stats.softDeletedRecords.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-yellow-600">
+                  {stats.softDeletedRecords.toLocaleString()}
+                </div>
                 <div className="text-sm text-yellow-800">Soft Deleted</div>
               </div>
               <div className="bg-red-50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-red-600">{stats.recordsEligibleForCleanup.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-red-600">
+                  {stats.recordsEligibleForCleanup.toLocaleString()}
+                </div>
                 <div className="text-sm text-red-800">Eligible for Cleanup</div>
               </div>
             </div>
@@ -309,16 +339,36 @@ export default function DataRetentionPage() {
         {/* Retention Policies */}
         {policies && (
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Current Retention Policies</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+              Current Retention Policies
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {Object.entries(policies).map(([type, policy]) => (
                 <div key={type} className="border rounded-lg p-4">
-                  <h3 className="font-semibold text-gray-900 capitalize mb-2">{type}</h3>
+                  <h3 className="font-semibold text-gray-900 capitalize mb-2">
+                    {type}
+                  </h3>
                   <div className="text-sm text-gray-600 space-y-1">
-                    <div>Max Age: <span className="font-medium">{policy.maxAge} days</span></div>
-                    <div>Grace Period: <span className="font-medium">{policy.gracePeriod} days</span></div>
-                    <div>Archiving: <span className="font-medium">{policy.enableArchiving ? 'Enabled' : 'Disabled'}</span></div>
-                    <div>Batch Size: <span className="font-medium">{policy.batchSize}</span></div>
+                    <div>
+                      Max Age:{' '}
+                      <span className="font-medium">{policy.maxAge} days</span>
+                    </div>
+                    <div>
+                      Grace Period:{' '}
+                      <span className="font-medium">
+                        {policy.gracePeriod} days
+                      </span>
+                    </div>
+                    <div>
+                      Archiving:{' '}
+                      <span className="font-medium">
+                        {policy.enableArchiving ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </div>
+                    <div>
+                      Batch Size:{' '}
+                      <span className="font-medium">{policy.batchSize}</span>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -328,8 +378,10 @@ export default function DataRetentionPage() {
 
         {/* Cleanup Controls */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Cleanup Operations</h2>
-          
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            Cleanup Operations
+          </h2>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             <button
               onClick={testCleanup}
@@ -338,7 +390,7 @@ export default function DataRetentionPage() {
             >
               {loading ? 'Testing...' : 'Test Cleanup'}
             </button>
-            
+
             <button
               onClick={() => runCleanup('full', true)}
               disabled={cleanupLoading}
@@ -346,7 +398,7 @@ export default function DataRetentionPage() {
             >
               {cleanupLoading ? 'Running...' : 'Dry Run (Full)'}
             </button>
-            
+
             <button
               onClick={() => runCleanup('full', false)}
               disabled={cleanupLoading}
@@ -364,7 +416,7 @@ export default function DataRetentionPage() {
             >
               Cleanup Experiences
             </button>
-            
+
             <button
               onClick={() => runCleanup('users', false)}
               disabled={cleanupLoading}
@@ -372,7 +424,7 @@ export default function DataRetentionPage() {
             >
               Cleanup Users
             </button>
-            
+
             <button
               onClick={() => runCleanup('orphaned', false)}
               disabled={cleanupLoading}
@@ -386,30 +438,44 @@ export default function DataRetentionPage() {
         {/* Cleanup Results */}
         {cleanupResults && (
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Latest Cleanup Results</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+              Latest Cleanup Results
+            </h2>
             <div className="space-y-4">
               {cleanupResults.map((result, index) => (
                 <div key={index} className="border rounded-lg p-4">
                   <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-semibold text-gray-900 capitalize">{result.type}</h3>
-                    <span className="text-sm text-gray-500">{result.duration}ms</span>
+                    <h3 className="font-semibold text-gray-900 capitalize">
+                      {result.type}
+                    </h3>
+                    <span className="text-sm text-gray-500">
+                      {result.duration}ms
+                    </span>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
                       <span className="text-gray-600">Processed:</span>
-                      <span className="font-medium ml-1">{result.processed}</span>
+                      <span className="font-medium ml-1">
+                        {result.processed}
+                      </span>
                     </div>
                     <div>
                       <span className="text-gray-600">Archived:</span>
-                      <span className="font-medium ml-1 text-blue-600">{result.archived}</span>
+                      <span className="font-medium ml-1 text-blue-600">
+                        {result.archived}
+                      </span>
                     </div>
                     <div>
                       <span className="text-gray-600">Deleted:</span>
-                      <span className="font-medium ml-1 text-red-600">{result.deleted}</span>
+                      <span className="font-medium ml-1 text-red-600">
+                        {result.deleted}
+                      </span>
                     </div>
                     <div>
                       <span className="text-gray-600">Errors:</span>
-                      <span className="font-medium ml-1 text-red-600">{result.errors}</span>
+                      <span className="font-medium ml-1 text-red-600">
+                        {result.errors}
+                      </span>
                     </div>
                   </div>
                 </div>

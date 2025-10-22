@@ -1,6 +1,6 @@
 /**
  * T032: /api/experiences/[id] - Experience Detail Operations
- * 
+ *
  * Handles GET (view), PUT (update), and DELETE (delete) requests
  * for individual experiences.
  */
@@ -11,7 +11,10 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { experienceSchema, validationUtils } from '@/lib/validations';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     const { id } = req.query;
     const experienceId = parseInt(id as string);
@@ -43,7 +46,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 /**
  * GET /api/experiences/[id] - Get experience details
  */
-async function handleGetExperience(req: NextApiRequest, res: NextApiResponse, experienceId: number) {
+async function handleGetExperience(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  experienceId: number
+) {
   try {
     const experience = await prisma.experience.findFirst({
       where: {
@@ -97,10 +104,13 @@ async function handleGetExperience(req: NextApiRequest, res: NextApiResponse, ex
     }
 
     // Calculate reaction counts by type
-    const reactionCounts = experience.reactions.reduce((acc: any, reaction: any) => {
-      acc[reaction.reactionType] = (acc[reaction.reactionType] || 0) + 1;
-      return acc;
-    }, {});
+    const reactionCounts = experience.reactions.reduce(
+      (acc: any, reaction: any) => {
+        acc[reaction.reactionType] = (acc[reaction.reactionType] || 0) + 1;
+        return acc;
+      },
+      {}
+    );
 
     // Format prompts with ratings
     const formattedPrompts = experience.prompts.map((prompt: any) => ({
@@ -156,7 +166,6 @@ async function handleGetExperience(req: NextApiRequest, res: NextApiResponse, ex
     };
 
     res.status(200).json({ experience: formattedExperience });
-
   } catch (error) {
     console.error('Error fetching experience:', error);
     res.status(500).json({ error: 'Failed to fetch experience' });
@@ -166,7 +175,11 @@ async function handleGetExperience(req: NextApiRequest, res: NextApiResponse, ex
 /**
  * PUT /api/experiences/[id] - Update experience
  */
-async function handleUpdateExperience(req: NextApiRequest, res: NextApiResponse, experienceId: number) {
+async function handleUpdateExperience(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  experienceId: number
+) {
   // Check authentication
   const session = await getServerSession(req, res, authOptions);
   if (!session?.user) {
@@ -186,7 +199,9 @@ async function handleUpdateExperience(req: NextApiRequest, res: NextApiResponse,
   }
 
   if (existingExperience.userId !== parseInt(session.user.id)) {
-    return res.status(403).json({ error: 'Not authorized to update this experience' });
+    return res
+      .status(403)
+      .json({ error: 'Not authorized to update this experience' });
   }
 
   // Validate request body
@@ -244,7 +259,6 @@ async function handleUpdateExperience(req: NextApiRequest, res: NextApiResponse,
       message: 'Experience updated successfully',
       experience: formattedExperience,
     });
-
   } catch (error) {
     console.error('Error updating experience:', error);
     res.status(500).json({ error: 'Failed to update experience' });
@@ -254,7 +268,11 @@ async function handleUpdateExperience(req: NextApiRequest, res: NextApiResponse,
 /**
  * DELETE /api/experiences/[id] - Delete experience (soft delete)
  */
-async function handleDeleteExperience(req: NextApiRequest, res: NextApiResponse, experienceId: number) {
+async function handleDeleteExperience(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  experienceId: number
+) {
   // Check authentication
   const session = await getServerSession(req, res, authOptions);
   if (!session?.user) {
@@ -274,7 +292,9 @@ async function handleDeleteExperience(req: NextApiRequest, res: NextApiResponse,
   }
 
   if (existingExperience.userId !== parseInt(session.user.id)) {
-    return res.status(403).json({ error: 'Not authorized to delete this experience' });
+    return res
+      .status(403)
+      .json({ error: 'Not authorized to delete this experience' });
   }
 
   try {
@@ -316,7 +336,6 @@ async function handleDeleteExperience(req: NextApiRequest, res: NextApiResponse,
     res.status(200).json({
       message: 'Experience deleted successfully',
     });
-
   } catch (error) {
     console.error('Error deleting experience:', error);
     res.status(500).json({ error: 'Failed to delete experience' });

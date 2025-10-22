@@ -1,15 +1,15 @@
 /**
  * Integration Test: GitHub URL Validation
- * 
+ *
  * This test validates GitHub URL validation (github.com only).
  * Based on User Journey Validation from quickstart.md
- * 
+ *
  * Test Status: RED (Must fail before implementation)
  * Related Task: T021
  * Implementation Tasks: T044 (validation utility), T033 (experience creation)
  */
 
-import { validateGitHubUrl } from '@/lib/validations';
+import { githubUrlValidation } from '@/lib/validations';
 
 // Mock the validation utility
 jest.mock('@/lib/validations');
@@ -25,13 +25,13 @@ describe('GitHub URL Validation Integration', () => {
       'https://github.com/user/repo/commit/abc123',
       'https://github.com/organization/project',
       'https://github.com/user-name/repo-name',
-      'https://github.com/user123/repo_name'
+      'https://github.com/user123/repo_name',
     ];
 
     it.each(validUrls)('should accept valid GitHub URL: %s', (url) => {
-      (validateGitHubUrl as jest.Mock).mockReturnValue(true);
-      
-      const result = validateGitHubUrl(url);
+      (githubUrlValidation.isValidGitHubUrl as jest.Mock).mockReturnValue(true);
+
+      const result = githubUrlValidation.isValidGitHubUrl(url);
       expect(result).toBe(true);
     });
   });
@@ -56,50 +56,78 @@ describe('GitHub URL Validation Integration', () => {
       'data:text/html,<script>alert("xss")</script>',
       '',
       null,
-      undefined
+      undefined,
     ];
 
     it.each(invalidUrls)('should reject invalid URL: %s', (url) => {
-      (validateGitHubUrl as jest.Mock).mockReturnValue(false);
-      
-      const result = validateGitHubUrl(url);
+      (githubUrlValidation.isValidGitHubUrl as jest.Mock).mockReturnValue(
+        false
+      );
+
+      const result = githubUrlValidation.isValidGitHubUrl(url!);
       expect(result).toBe(false);
     });
   });
 
   describe('URL Pattern Validation', () => {
     it('should validate github.com domain specifically', () => {
-      (validateGitHubUrl as jest.Mock).mockImplementation((url) => {
-        if (!url || typeof url !== 'string') return false;
-        return url.startsWith('https://github.com/') && url.length > 19;
-      });
+      (githubUrlValidation.isValidGitHubUrl as jest.Mock).mockImplementation(
+        (url) => {
+          if (!url || typeof url !== 'string') return false;
+          return url.startsWith('https://github.com/') && url.length > 19;
+        }
+      );
 
-      expect(validateGitHubUrl('https://github.com/user/repo')).toBe(true);
-      expect(validateGitHubUrl('https://gitlab.com/user/repo')).toBe(false);
-      expect(validateGitHubUrl('https://github.co/user/repo')).toBe(false);
+      expect(
+        githubUrlValidation.isValidGitHubUrl('https://github.com/user/repo')
+      ).toBe(true);
+      expect(
+        githubUrlValidation.isValidGitHubUrl('https://gitlab.com/user/repo')
+      ).toBe(false);
+      expect(
+        githubUrlValidation.isValidGitHubUrl('https://github.co/user/repo')
+      ).toBe(false);
     });
 
     it('should require HTTPS protocol', () => {
-      (validateGitHubUrl as jest.Mock).mockImplementation((url) => {
-        return url && url.startsWith('https://github.com/');
-      });
+      (githubUrlValidation.isValidGitHubUrl as jest.Mock).mockImplementation(
+        (url) => {
+          return url && url.startsWith('https://github.com/');
+        }
+      );
 
-      expect(validateGitHubUrl('https://github.com/user/repo')).toBe(true);
-      expect(validateGitHubUrl('http://github.com/user/repo')).toBe(false);
-      expect(validateGitHubUrl('ftp://github.com/user/repo')).toBe(false);
+      expect(
+        githubUrlValidation.isValidGitHubUrl('https://github.com/user/repo')
+      ).toBe(true);
+      expect(
+        githubUrlValidation.isValidGitHubUrl('http://github.com/user/repo')
+      ).toBe(false);
+      expect(
+        githubUrlValidation.isValidGitHubUrl('ftp://github.com/user/repo')
+      ).toBe(false);
     });
 
     it('should require repository path', () => {
-      (validateGitHubUrl as jest.Mock).mockImplementation((url) => {
-        if (!url || !url.startsWith('https://github.com/')) return false;
-        const path = url.replace('https://github.com/', '');
-        return path.length > 0 && path.includes('/');
-      });
+      (githubUrlValidation.isValidGitHubUrl as jest.Mock).mockImplementation(
+        (url) => {
+          if (!url || !url.startsWith('https://github.com/')) return false;
+          const path = url.replace('https://github.com/', '');
+          return path.length > 0 && path.includes('/');
+        }
+      );
 
-      expect(validateGitHubUrl('https://github.com/user/repo')).toBe(true);
-      expect(validateGitHubUrl('https://github.com/')).toBe(false);
-      expect(validateGitHubUrl('https://github.com')).toBe(false);
-      expect(validateGitHubUrl('https://github.com/user')).toBe(false);
+      expect(
+        githubUrlValidation.isValidGitHubUrl('https://github.com/user/repo')
+      ).toBe(true);
+      expect(githubUrlValidation.isValidGitHubUrl('https://github.com/')).toBe(
+        false
+      );
+      expect(githubUrlValidation.isValidGitHubUrl('https://github.com')).toBe(
+        false
+      );
+      expect(
+        githubUrlValidation.isValidGitHubUrl('https://github.com/user')
+      ).toBe(false);
     });
   });
 
@@ -110,66 +138,90 @@ describe('GitHub URL Validation Integration', () => {
       'https://github.com/user/repo"><script>alert("xss")</script>',
       'https://github.com/user/repo\'"onmouseover="alert(1)"',
       'https://github.com/user/repo?redirect=javascript:alert("xss")',
-      'https://github.com/user/repo#<script>alert("xss")</script>'
+      'https://github.com/user/repo#<script>alert("xss")</script>',
     ];
 
     it.each(maliciousUrls)('should reject malicious URL: %s', (url) => {
-      (validateGitHubUrl as jest.Mock).mockImplementation((url) => {
-        if (!url || typeof url !== 'string') return false;
-        
-        // Check for malicious patterns
-        const maliciousPatterns = [
-          /javascript:/i,
-          /data:/i,
-          /<script/i,
-          /onmouseover/i,
-          /onclick/i,
-          /onerror/i
-        ];
-        
-        if (maliciousPatterns.some(pattern => pattern.test(url))) {
-          return false;
-        }
-        
-        return url.startsWith('https://github.com/');
-      });
+      (githubUrlValidation.isValidGitHubUrl as jest.Mock).mockImplementation(
+        (url) => {
+          if (!url || typeof url !== 'string') return false;
 
-      const result = validateGitHubUrl(url);
+          // Check for malicious patterns
+          const maliciousPatterns = [
+            /javascript:/i,
+            /data:/i,
+            /<script/i,
+            /onmouseover/i,
+            /onclick/i,
+            /onerror/i,
+          ];
+
+          if (maliciousPatterns.some((pattern) => pattern.test(url))) {
+            return false;
+          }
+
+          return url.startsWith('https://github.com/');
+        }
+      );
+
+      const result = githubUrlValidation.isValidGitHubUrl(url);
       expect(result).toBe(false);
     });
   });
 
   describe('URL Normalization', () => {
     it('should handle URLs with trailing slashes', () => {
-      (validateGitHubUrl as jest.Mock).mockImplementation((url) => {
-        if (!url) return false;
-        const normalized = url.replace(/\/$/, ''); // Remove trailing slash
-        return normalized.startsWith('https://github.com/') && normalized.includes('/', 19);
-      });
+      (githubUrlValidation.isValidGitHubUrl as jest.Mock).mockImplementation(
+        (url) => {
+          if (!url) return false;
+          const normalized = url.replace(/\/$/, ''); // Remove trailing slash
+          return (
+            normalized.startsWith('https://github.com/') &&
+            normalized.includes('/', 19)
+          );
+        }
+      );
 
-      expect(validateGitHubUrl('https://github.com/user/repo/')).toBe(true);
-      expect(validateGitHubUrl('https://github.com/user/repo')).toBe(true);
+      expect(
+        githubUrlValidation.isValidGitHubUrl('https://github.com/user/repo/')
+      ).toBe(true);
+      expect(
+        githubUrlValidation.isValidGitHubUrl('https://github.com/user/repo')
+      ).toBe(true);
     });
 
     it('should handle URLs with query parameters', () => {
-      (validateGitHubUrl as jest.Mock).mockImplementation((url) => {
-        if (!url) return false;
-        const baseUrl = url.split('?')[0]; // Remove query params for validation
-        return baseUrl.startsWith('https://github.com/') && baseUrl.includes('/', 19);
-      });
+      (githubUrlValidation.isValidGitHubUrl as jest.Mock).mockImplementation(
+        (url) => {
+          if (!url) return false;
+          const baseUrl = url.split('?')[0]; // Remove query params for validation
+          return (
+            baseUrl.startsWith('https://github.com/') &&
+            baseUrl.includes('/', 19)
+          );
+        }
+      );
 
-      expect(validateGitHubUrl('https://github.com/user/repo?tab=readme')).toBe(true);
-      expect(validateGitHubUrl('https://github.com/user/repo/blob/main/file.ts?line=10')).toBe(true);
+      expect(
+        githubUrlValidation.isValidGitHubUrl(
+          'https://github.com/user/repo?tab=readme'
+        )
+      ).toBe(true);
+      expect(
+        githubUrlValidation.isValidGitHubUrl(
+          'https://github.com/user/repo/blob/main/file.ts?line=10'
+        )
+      ).toBe(true);
     });
   });
 
   describe('Array Validation', () => {
     it('should validate arrays of GitHub URLs', () => {
       const validateGitHubUrls = (urls: string[]) => {
-        return urls.every(url => validateGitHubUrl(url));
+        return urls.every((url) => githubUrlValidation.isValidGitHubUrl(url));
       };
 
-      (validateGitHubUrl as jest.Mock)
+      (githubUrlValidation.isValidGitHubUrl as jest.Mock)
         .mockReturnValueOnce(true)
         .mockReturnValueOnce(true)
         .mockReturnValueOnce(true);
@@ -177,18 +229,18 @@ describe('GitHub URL Validation Integration', () => {
       const validUrls = [
         'https://github.com/user/repo1',
         'https://github.com/user/repo2/blob/main/file.ts',
-        'https://github.com/org/project/pull/123'
+        'https://github.com/org/project/pull/123',
       ];
 
       expect(validateGitHubUrls(validUrls)).toBe(true);
     });
 
     it('should reject arrays with mixed valid/invalid URLs', () => {
-      const validateGitHubUrls = (urls: string[]) => {
-        return urls.every(url => validateGitHubUrl(url));
+      const validateGitHubUrls2 = (urls: string[]) => {
+        return urls.every((url) => githubUrlValidation.isValidGitHubUrl(url));
       };
 
-      (validateGitHubUrl as jest.Mock)
+      (githubUrlValidation.isValidGitHubUrl as jest.Mock)
         .mockReturnValueOnce(true)
         .mockReturnValueOnce(false) // Invalid URL
         .mockReturnValueOnce(true);
@@ -196,23 +248,26 @@ describe('GitHub URL Validation Integration', () => {
       const mixedUrls = [
         'https://github.com/user/repo1',
         'https://gitlab.com/user/repo2', // Invalid
-        'https://github.com/user/repo3'
+        'https://github.com/user/repo3',
       ];
 
-      expect(validateGitHubUrls(mixedUrls)).toBe(false);
+      expect(validateGitHubUrls2(mixedUrls)).toBe(false);
     });
   });
 
   describe('Edge Cases', () => {
     it('should handle very long GitHub URLs', () => {
-      const longUrl = 'https://github.com/user/very-long-repository-name-that-exceeds-normal-limits/blob/feature/very-long-branch-name-with-multiple-parts/src/components/deeply/nested/directory/structure/VeryLongComponentNameThatExceedsNormalLimits.tsx';
-      
-      (validateGitHubUrl as jest.Mock).mockImplementation((url) => {
-        if (!url || url.length > 2000) return false; // Reasonable length limit
-        return url.startsWith('https://github.com/') && url.includes('/', 19);
-      });
+      const longUrl =
+        'https://github.com/user/very-long-repository-name-that-exceeds-normal-limits/blob/feature/very-long-branch-name-with-multiple-parts/src/components/deeply/nested/directory/structure/VeryLongComponentNameThatExceedsNormalLimits.tsx';
 
-      expect(validateGitHubUrl(longUrl)).toBe(true);
+      (githubUrlValidation.isValidGitHubUrl as jest.Mock).mockImplementation(
+        (url) => {
+          if (!url || url.length > 2000) return false; // Reasonable length limit
+          return url.startsWith('https://github.com/') && url.includes('/', 19);
+        }
+      );
+
+      expect(githubUrlValidation.isValidGitHubUrl(longUrl)).toBe(true);
     });
 
     it('should handle URLs with special characters in repository names', () => {
@@ -221,18 +276,20 @@ describe('GitHub URL Validation Integration', () => {
         'https://github.com/user/repo_name',
         'https://github.com/user/repo.name',
         'https://github.com/user-name/repo-name',
-        'https://github.com/user_name/repo_name'
+        'https://github.com/user_name/repo_name',
       ];
 
-      (validateGitHubUrl as jest.Mock).mockImplementation((url) => {
-        if (!url) return false;
-        const path = url.replace('https://github.com/', '');
-        // Allow alphanumeric, hyphens, underscores, dots
-        return /^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+/.test(path);
-      });
+      (githubUrlValidation.isValidGitHubUrl as jest.Mock).mockImplementation(
+        (url) => {
+          if (!url) return false;
+          const path = url.replace('https://github.com/', '');
+          // Allow alphanumeric, hyphens, underscores, dots
+          return /^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+/.test(path);
+        }
+      );
 
-      specialCharUrls.forEach(url => {
-        expect(validateGitHubUrl(url)).toBe(true);
+      specialCharUrls.forEach((url) => {
+        expect(githubUrlValidation.isValidGitHubUrl(url)).toBe(true);
       });
     });
   });

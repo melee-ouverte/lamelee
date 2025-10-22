@@ -1,9 +1,9 @@
 /**
  * Contract Test: PUT /api/experiences/{id}
- * 
+ *
  * This test validates the API contract for updating experiences.
  * According to the OpenAPI specification in contracts/api.yaml
- * 
+ *
  * Test Status: RED (Must fail before implementation)
  * Related Task: T009
  * Implementation Task: T035
@@ -18,7 +18,9 @@ describe('/api/experiences/{id} PUT', () => {
     description: 'Updated description with more details',
     ai_assistant_type: 'GitHub Copilot',
     tags: ['react', 'typescript', 'components', 'updated'],
-    github_urls: ['https://github.com/user/repo/blob/main/UpdatedComponent.tsx']
+    github_urls: [
+      'https://github.com/user/repo/blob/main/UpdatedComponent.tsx',
+    ],
   };
 
   it('should update experience with valid data', async () => {
@@ -26,13 +28,13 @@ describe('/api/experiences/{id} PUT', () => {
       method: 'PUT',
       query: { id: '1' },
       body: updateData,
-      headers: { 'content-type': 'application/json' }
+      headers: { 'content-type': 'application/json' },
     });
 
     await handler(req, res);
 
     expect(res._getStatusCode()).toBe(200);
-    
+
     const data = JSON.parse(res._getData());
     expect(data.title).toBe(updateData.title);
     expect(data.description).toBe(updateData.description);
@@ -43,7 +45,7 @@ describe('/api/experiences/{id} PUT', () => {
       method: 'PUT',
       query: { id: '1' },
       body: updateData,
-      headers: { 'content-type': 'application/json' }
+      headers: { 'content-type': 'application/json' },
     });
 
     await handler(req, res);
@@ -57,7 +59,7 @@ describe('/api/experiences/{id} PUT', () => {
       method: 'PUT',
       query: { id: '99999' },
       body: updateData,
-      headers: { 'content-type': 'application/json' }
+      headers: { 'content-type': 'application/json' },
     });
 
     await handler(req, res);

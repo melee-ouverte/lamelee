@@ -1,6 +1,6 @@
 /**
  * T035: /api/prompts/[id]/ratings - Prompt Ratings
- * 
+ *
  * Handles POST requests to rate individual prompts (1-5 scale).
  */
 
@@ -10,7 +10,10 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { promptRatingSchema, validationUtils } from '@/lib/validations';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     const { id } = req.query;
     const promptId = parseInt(id as string);
@@ -36,7 +39,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 /**
  * POST /api/prompts/[id]/ratings - Create or update prompt rating
  */
-async function handleCreateOrUpdateRating(req: NextApiRequest, res: NextApiResponse, promptId: number) {
+async function handleCreateOrUpdateRating(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  promptId: number
+) {
   // Check authentication
   const session = await getServerSession(req, res, authOptions);
   if (!session?.user) {
@@ -88,11 +95,11 @@ async function handleCreateOrUpdateRating(req: NextApiRequest, res: NextApiRespo
 
     let promptRating;
     let isUpdate = false;
-    let oldRating = 0;
+    let _oldRating = 0;
 
     if (existingRating) {
       // Update existing rating
-      oldRating = existingRating.rating;
+      _oldRating = existingRating.rating;
       promptRating = await prisma.promptRating.update({
         where: {
           userId_promptId: {
@@ -142,7 +149,10 @@ async function handleCreateOrUpdateRating(req: NextApiRequest, res: NextApiRespo
     });
 
     const totalRatings = allRatings.length;
-    const sumRatings = allRatings.reduce((sum: number, r: any) => sum + r.rating, 0);
+    const sumRatings = allRatings.reduce(
+      (sum: number, r: any) => sum + r.rating,
+      0
+    );
     const averageRating = totalRatings > 0 ? sumRatings / totalRatings : 0;
 
     // Update prompt with new average rating
@@ -177,9 +187,8 @@ async function handleCreateOrUpdateRating(req: NextApiRequest, res: NextApiRespo
       }
     });
 
-    const experienceAverageRating = totalRatingCount > 0 
-      ? totalWeightedRating / totalRatingCount 
-      : 0;
+    const experienceAverageRating =
+      totalRatingCount > 0 ? totalWeightedRating / totalRatingCount : 0;
 
     await prisma.experience.update({
       where: { id: prompt.experience.id },
@@ -202,7 +211,9 @@ async function handleCreateOrUpdateRating(req: NextApiRequest, res: NextApiRespo
     };
 
     res.status(isUpdate ? 200 : 201).json({
-      message: isUpdate ? 'Rating updated successfully' : 'Rating added successfully',
+      message: isUpdate
+        ? 'Rating updated successfully'
+        : 'Rating added successfully',
       rating: formattedRating,
       promptStats: {
         averageRating: parseFloat(averageRating.toFixed(2)),
@@ -212,7 +223,6 @@ async function handleCreateOrUpdateRating(req: NextApiRequest, res: NextApiRespo
         averageRating: parseFloat(experienceAverageRating.toFixed(2)),
       },
     });
-
   } catch (error) {
     console.error('Error creating/updating rating:', error);
     res.status(500).json({ error: 'Failed to process rating' });

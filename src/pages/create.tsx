@@ -12,21 +12,15 @@ interface PromptForm {
   resultsAchieved: string;
 }
 
-const AI_ASSISTANTS = [
-  'github-copilot',
-  'claude',
-  'gpt',
-  'cursor',
-  'other',
-];
+const AI_ASSISTANTS = ['github-copilot', 'claude', 'gpt', 'cursor', 'other'];
 
 export default function CreateExperience() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -35,7 +29,7 @@ export default function CreateExperience() {
   const [githubUrls, setGithubUrls] = useState<string[]>(['']);
   const [isNews, setIsNews] = useState(false);
   const [prompts, setPrompts] = useState<PromptForm[]>([
-    { id: '1', content: '', context: '', resultsAchieved: '' }
+    { id: '1', content: '', context: '', resultsAchieved: '' },
   ]);
 
   // Tag management
@@ -49,7 +43,7 @@ export default function CreateExperience() {
   };
 
   const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
   // GitHub URL management
@@ -74,24 +68,29 @@ export default function CreateExperience() {
   // Prompt management
   const addPrompt = () => {
     if (prompts.length < 10) {
-      setPrompts([...prompts, {
-        id: Date.now().toString(),
-        content: '',
-        context: '',
-        resultsAchieved: ''
-      }]);
+      setPrompts([
+        ...prompts,
+        {
+          id: Date.now().toString(),
+          content: '',
+          context: '',
+          resultsAchieved: '',
+        },
+      ]);
     }
   };
 
   const updatePrompt = (id: string, field: keyof PromptForm, value: string) => {
-    setPrompts(prompts.map(prompt => 
-      prompt.id === id ? { ...prompt, [field]: value } : prompt
-    ));
+    setPrompts(
+      prompts.map((prompt) =>
+        prompt.id === id ? { ...prompt, [field]: value } : prompt
+      )
+    );
   };
 
   const removePrompt = (id: string) => {
     if (prompts.length > 1) {
-      setPrompts(prompts.filter(prompt => prompt.id !== id));
+      setPrompts(prompts.filter((prompt) => prompt.id !== id));
     }
   };
 
@@ -121,15 +120,15 @@ export default function CreateExperience() {
       if (!aiAssistantType) {
         throw new Error('AI Assistant type is required');
       }
-      
-      const validGithubUrls = githubUrls.filter(url => url.trim());
+
+      const validGithubUrls = githubUrls.filter((url) => url.trim());
       for (const url of validGithubUrls) {
         if (!validateGithubUrl(url)) {
           throw new Error('All GitHub URLs must be valid github.com URLs');
         }
       }
 
-      const validPrompts = prompts.filter(prompt => prompt.content.trim());
+      const validPrompts = prompts.filter((prompt) => prompt.content.trim());
       if (validPrompts.length === 0) {
         throw new Error('At least one prompt is required');
       }
@@ -147,7 +146,7 @@ export default function CreateExperience() {
           tags,
           githubUrls: validGithubUrls,
           isNews,
-          prompts: validPrompts.map(prompt => ({
+          prompts: validPrompts.map((prompt) => ({
             content: prompt.content.trim(),
             context: prompt.context.trim() || undefined,
             resultsAchieved: prompt.resultsAchieved.trim() || undefined,
@@ -163,7 +162,9 @@ export default function CreateExperience() {
       const { experience } = await response.json();
       router.push(`/experiences/${experience.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setError(
+        err instanceof Error ? err.message : 'An unexpected error occurred'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -183,14 +184,17 @@ export default function CreateExperience() {
     return (
       <Layout>
         <Head>
-          <title>Create Experience - AI Coding Assistant Experience Platform</title>
+          <title>
+            Create Experience - AI Coding Assistant Experience Platform
+          </title>
         </Head>
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
             Sign in to share your experience
           </h1>
           <p className="text-gray-600 mb-8">
-            You need to be signed in to share your AI coding assistant experiences.
+            You need to be signed in to share your AI coding assistant
+            experiences.
           </p>
           <a
             href="/api/auth/signin"
@@ -206,8 +210,13 @@ export default function CreateExperience() {
   return (
     <Layout>
       <Head>
-        <title>Create Experience - AI Coding Assistant Experience Platform</title>
-        <meta name="description" content="Share your AI coding assistant experience with the community" />
+        <title>
+          Create Experience - AI Coding Assistant Experience Platform
+        </title>
+        <meta
+          name="description"
+          content="Share your AI coding assistant experience with the community"
+        />
       </Head>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -226,11 +235,16 @@ export default function CreateExperience() {
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Basic Information */}
               <div className="space-y-6">
-                <h2 className="text-lg font-medium text-gray-900">Basic Information</h2>
+                <h2 className="text-lg font-medium text-gray-900">
+                  Basic Information
+                </h2>
 
                 {/* Title */}
                 <div>
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="title"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Title *
                   </label>
                   <input
@@ -243,12 +257,17 @@ export default function CreateExperience() {
                     maxLength={200}
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">{title.length}/200 characters</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {title.length}/200 characters
+                  </p>
                 </div>
 
                 {/* Description */}
                 <div>
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="description"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Description *
                   </label>
                   <textarea
@@ -261,12 +280,17 @@ export default function CreateExperience() {
                     maxLength={1000}
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">{description.length}/1000 characters</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {description.length}/1000 characters
+                  </p>
                 </div>
 
                 {/* AI Assistant Type */}
                 <div>
-                  <label htmlFor="aiAssistant" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="aiAssistant"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     AI Assistant *
                   </label>
                   <select
@@ -294,7 +318,10 @@ export default function CreateExperience() {
                     onChange={(e) => setIsNews(e.target.checked)}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
-                  <label htmlFor="isNews" className="ml-2 block text-sm text-gray-700">
+                  <label
+                    htmlFor="isNews"
+                    className="ml-2 block text-sm text-gray-700"
+                  >
                     This is news or an announcement
                   </label>
                 </div>
@@ -303,13 +330,15 @@ export default function CreateExperience() {
               {/* Tags */}
               <div className="space-y-4">
                 <h2 className="text-lg font-medium text-gray-900">Tags</h2>
-                
+
                 <div className="flex space-x-2">
                   <input
                     type="text"
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                    onKeyPress={(e) =>
+                      e.key === 'Enter' && (e.preventDefault(), addTag())
+                    }
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Add a tag..."
                     maxLength={30}
@@ -351,8 +380,10 @@ export default function CreateExperience() {
 
               {/* GitHub URLs */}
               <div className="space-y-4">
-                <h2 className="text-lg font-medium text-gray-900">GitHub Repositories</h2>
-                
+                <h2 className="text-lg font-medium text-gray-900">
+                  GitHub Repositories
+                </h2>
+
                 {githubUrls.map((url, index) => (
                   <div key={index} className="flex space-x-2">
                     <div className="flex-1">
@@ -361,13 +392,17 @@ export default function CreateExperience() {
                         <input
                           type="url"
                           value={url}
-                          onChange={(e) => updateGithubUrl(index, e.target.value)}
+                          onChange={(e) =>
+                            updateGithubUrl(index, e.target.value)
+                          }
                           className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                           placeholder="https://github.com/username/repository"
                         />
                       </div>
                       {url && !validateGithubUrl(url) && (
-                        <p className="text-xs text-red-600 mt-1">Must be a valid github.com URL</p>
+                        <p className="text-xs text-red-600 mt-1">
+                          Must be a valid github.com URL
+                        </p>
                       )}
                     </div>
                     {githubUrls.length > 1 && (
@@ -397,9 +432,12 @@ export default function CreateExperience() {
               {/* Prompts */}
               <div className="space-y-6">
                 <h2 className="text-lg font-medium text-gray-900">Prompts</h2>
-                
+
                 {prompts.map((prompt, index) => (
-                  <div key={prompt.id} className="border border-gray-200 rounded-lg p-4 space-y-4">
+                  <div
+                    key={prompt.id}
+                    className="border border-gray-200 rounded-lg p-4 space-y-4"
+                  >
                     <div className="flex items-center justify-between">
                       <h3 className="text-md font-medium text-gray-800">
                         Prompt {index + 1}
@@ -422,7 +460,9 @@ export default function CreateExperience() {
                       </label>
                       <textarea
                         value={prompt.context}
-                        onChange={(e) => updatePrompt(prompt.id, 'context', e.target.value)}
+                        onChange={(e) =>
+                          updatePrompt(prompt.id, 'context', e.target.value)
+                        }
                         rows={2}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none"
                         placeholder="What was the situation or problem you were trying to solve?"
@@ -437,7 +477,9 @@ export default function CreateExperience() {
                       </label>
                       <textarea
                         value={prompt.content}
-                        onChange={(e) => updatePrompt(prompt.id, 'content', e.target.value)}
+                        onChange={(e) =>
+                          updatePrompt(prompt.id, 'content', e.target.value)
+                        }
                         rows={4}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none font-mono"
                         placeholder="Enter the exact prompt you used with the AI assistant..."
@@ -453,7 +495,13 @@ export default function CreateExperience() {
                       </label>
                       <textarea
                         value={prompt.resultsAchieved}
-                        onChange={(e) => updatePrompt(prompt.id, 'resultsAchieved', e.target.value)}
+                        onChange={(e) =>
+                          updatePrompt(
+                            prompt.id,
+                            'resultsAchieved',
+                            e.target.value
+                          )
+                        }
                         rows={2}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none"
                         placeholder="What did you achieve with this prompt? How did it help?"

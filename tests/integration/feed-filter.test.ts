@@ -1,9 +1,9 @@
 /**
  * Integration Test: Browse and Filter Feed by AI Assistant Type
- * 
+ *
  * This test validates the complete feed browsing and filtering functionality.
  * Based on User Journey Validation from quickstart.md
- * 
+ *
  * Test Status: RED (Must fail before implementation)
  * Related Task: T018
  * Implementation Tasks: T032 (GET /api/experiences), T053 (Feed page)
@@ -23,7 +23,7 @@ describe('Feed Filtering Integration', () => {
     id: '1',
     githubId: 12345,
     username: 'testuser',
-    email: 'test@example.com'
+    email: 'test@example.com',
   };
 
   const mockExperiences = [
@@ -38,7 +38,7 @@ describe('Feed Filtering Integration', () => {
       isNews: false,
       createdAt: new Date('2024-01-15'),
       updatedAt: new Date('2024-01-15'),
-      user: { id: 1, username: 'user1', avatarUrl: 'avatar1.png' }
+      user: { id: 1, username: 'user1', avatarUrl: 'avatar1.png' },
     },
     {
       id: 2,
@@ -51,7 +51,7 @@ describe('Feed Filtering Integration', () => {
       isNews: false,
       createdAt: new Date('2024-01-14'),
       updatedAt: new Date('2024-01-14'),
-      user: { id: 2, username: 'user2', avatarUrl: 'avatar2.png' }
+      user: { id: 2, username: 'user2', avatarUrl: 'avatar2.png' },
     },
     {
       id: 3,
@@ -64,57 +64,62 @@ describe('Feed Filtering Integration', () => {
       isNews: false,
       createdAt: new Date('2024-01-13'),
       updatedAt: new Date('2024-01-13'),
-      user: { id: 3, username: 'user3', avatarUrl: 'avatar3.png' }
-    }
+      user: { id: 3, username: 'user3', avatarUrl: 'avatar3.png' },
+    },
   ];
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock authenticated user
     (getServerSession as jest.Mock).mockResolvedValue({
-      user: mockUser
+      user: mockUser,
     });
   });
 
   describe('Feed Browsing', () => {
     it('should fetch all experiences in chronological order', async () => {
-      (prisma.experience.findMany as jest.Mock).mockResolvedValue(mockExperiences);
+      (prisma.experience.findMany as jest.Mock).mockResolvedValue(
+        mockExperiences
+      );
       (prisma.experience.count as jest.Mock).mockResolvedValue(3);
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: {}
+        query: {},
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.experiences).toHaveLength(3);
       expect(data.total).toBe(3);
       expect(data.page).toBe(1);
-      
+
       // Verify chronological order (newest first)
-      expect(new Date(data.experiences[0].created_at).getTime())
-        .toBeGreaterThan(new Date(data.experiences[1].created_at).getTime());
+      expect(
+        new Date(data.experiences[0].created_at).getTime()
+      ).toBeGreaterThan(new Date(data.experiences[1].created_at).getTime());
     });
 
     it('should implement pagination correctly', async () => {
       const paginatedResults = mockExperiences.slice(0, 2);
-      (prisma.experience.findMany as jest.Mock).mockResolvedValue(paginatedResults);
+      (prisma.experience.findMany as jest.Mock).mockResolvedValue(
+        paginatedResults
+      );
       (prisma.experience.count as jest.Mock).mockResolvedValue(3);
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { page: '1', limit: '2' }
+        query: { page: '1', limit: '2' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.experiences).toHaveLength(2);
       expect(data.total).toBe(3);
@@ -125,19 +130,23 @@ describe('Feed Filtering Integration', () => {
 
   describe('AI Assistant Type Filtering', () => {
     it('should filter by GitHub Copilot', async () => {
-      const copilotExperiences = mockExperiences.filter(exp => exp.aiAssistantType === 'GitHub Copilot');
-      (prisma.experience.findMany as jest.Mock).mockResolvedValue(copilotExperiences);
+      const copilotExperiences = mockExperiences.filter(
+        (exp) => exp.aiAssistantType === 'GitHub Copilot'
+      );
+      (prisma.experience.findMany as jest.Mock).mockResolvedValue(
+        copilotExperiences
+      );
       (prisma.experience.count as jest.Mock).mockResolvedValue(1);
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { ai_assistant: 'GitHub Copilot' }
+        query: { ai_assistant: 'GitHub Copilot' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.experiences).toHaveLength(1);
       expect(data.experiences[0].ai_assistant_type).toBe('GitHub Copilot');
@@ -145,19 +154,23 @@ describe('Feed Filtering Integration', () => {
     });
 
     it('should filter by ChatGPT', async () => {
-      const chatgptExperiences = mockExperiences.filter(exp => exp.aiAssistantType === 'ChatGPT');
-      (prisma.experience.findMany as jest.Mock).mockResolvedValue(chatgptExperiences);
+      const chatgptExperiences = mockExperiences.filter(
+        (exp) => exp.aiAssistantType === 'ChatGPT'
+      );
+      (prisma.experience.findMany as jest.Mock).mockResolvedValue(
+        chatgptExperiences
+      );
       (prisma.experience.count as jest.Mock).mockResolvedValue(1);
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { ai_assistant: 'ChatGPT' }
+        query: { ai_assistant: 'ChatGPT' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.experiences).toHaveLength(1);
       expect(data.experiences[0].ai_assistant_type).toBe('ChatGPT');
@@ -165,19 +178,23 @@ describe('Feed Filtering Integration', () => {
     });
 
     it('should filter by Claude', async () => {
-      const claudeExperiences = mockExperiences.filter(exp => exp.aiAssistantType === 'Claude');
-      (prisma.experience.findMany as jest.Mock).mockResolvedValue(claudeExperiences);
+      const claudeExperiences = mockExperiences.filter(
+        (exp) => exp.aiAssistantType === 'Claude'
+      );
+      (prisma.experience.findMany as jest.Mock).mockResolvedValue(
+        claudeExperiences
+      );
       (prisma.experience.count as jest.Mock).mockResolvedValue(1);
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { ai_assistant: 'Claude' }
+        query: { ai_assistant: 'Claude' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.experiences).toHaveLength(1);
       expect(data.experiences[0].ai_assistant_type).toBe('Claude');
@@ -187,40 +204,46 @@ describe('Feed Filtering Integration', () => {
 
   describe('Tag Filtering', () => {
     it('should filter by single tag', async () => {
-      const reactExperiences = mockExperiences.filter(exp => exp.tags.includes('react'));
-      (prisma.experience.findMany as jest.Mock).mockResolvedValue(reactExperiences);
+      const reactExperiences = mockExperiences.filter((exp) =>
+        exp.tags.includes('react')
+      );
+      (prisma.experience.findMany as jest.Mock).mockResolvedValue(
+        reactExperiences
+      );
       (prisma.experience.count as jest.Mock).mockResolvedValue(1);
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { tags: ['react'] }
+        query: { tags: ['react'] },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.experiences).toHaveLength(1);
       expect(data.experiences[0].tags).toContain('react');
     });
 
     it('should filter by multiple tags', async () => {
-      const multiTagExperiences = mockExperiences.filter(exp => 
-        exp.tags.includes('api') || exp.tags.includes('documentation')
+      const multiTagExperiences = mockExperiences.filter(
+        (exp) => exp.tags.includes('api') || exp.tags.includes('documentation')
       );
-      (prisma.experience.findMany as jest.Mock).mockResolvedValue(multiTagExperiences);
+      (prisma.experience.findMany as jest.Mock).mockResolvedValue(
+        multiTagExperiences
+      );
       (prisma.experience.count as jest.Mock).mockResolvedValue(2);
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { tags: ['api', 'documentation'] }
+        query: { tags: ['api', 'documentation'] },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.experiences).toHaveLength(2);
     });
@@ -228,45 +251,51 @@ describe('Feed Filtering Integration', () => {
 
   describe('Search Functionality', () => {
     it('should search by title and description content', async () => {
-      const searchResults = mockExperiences.filter(exp => 
-        exp.title.toLowerCase().includes('react') || 
-        exp.description.toLowerCase().includes('react')
+      const searchResults = mockExperiences.filter(
+        (exp) =>
+          exp.title.toLowerCase().includes('react') ||
+          exp.description.toLowerCase().includes('react')
       );
-      (prisma.experience.findMany as jest.Mock).mockResolvedValue(searchResults);
+      (prisma.experience.findMany as jest.Mock).mockResolvedValue(
+        searchResults
+      );
       (prisma.experience.count as jest.Mock).mockResolvedValue(1);
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { search: 'react' }
+        query: { search: 'react' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.experiences).toHaveLength(1);
       expect(data.experiences[0].title).toMatch(/react/i);
     });
 
     it('should search across multiple fields', async () => {
-      const searchResults = mockExperiences.filter(exp => 
-        exp.title.toLowerCase().includes('api') || 
-        exp.description.toLowerCase().includes('api') ||
-        exp.tags.some(tag => tag.toLowerCase().includes('api'))
+      const searchResults = mockExperiences.filter(
+        (exp) =>
+          exp.title.toLowerCase().includes('api') ||
+          exp.description.toLowerCase().includes('api') ||
+          exp.tags.some((tag) => tag.toLowerCase().includes('api'))
       );
-      (prisma.experience.findMany as jest.Mock).mockResolvedValue(searchResults);
+      (prisma.experience.findMany as jest.Mock).mockResolvedValue(
+        searchResults
+      );
       (prisma.experience.count as jest.Mock).mockResolvedValue(1);
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { search: 'api' }
+        query: { search: 'api' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.experiences).toHaveLength(1);
     });
@@ -274,24 +303,27 @@ describe('Feed Filtering Integration', () => {
 
   describe('Combined Filtering', () => {
     it('should combine AI assistant type and tag filters', async () => {
-      const combinedResults = mockExperiences.filter(exp => 
-        exp.aiAssistantType === 'GitHub Copilot' && exp.tags.includes('react')
+      const combinedResults = mockExperiences.filter(
+        (exp) =>
+          exp.aiAssistantType === 'GitHub Copilot' && exp.tags.includes('react')
       );
-      (prisma.experience.findMany as jest.Mock).mockResolvedValue(combinedResults);
+      (prisma.experience.findMany as jest.Mock).mockResolvedValue(
+        combinedResults
+      );
       (prisma.experience.count as jest.Mock).mockResolvedValue(1);
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { 
+        query: {
           ai_assistant: 'GitHub Copilot',
-          tags: ['react']
-        }
+          tags: ['react'],
+        },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.experiences).toHaveLength(1);
       expect(data.experiences[0].ai_assistant_type).toBe('GitHub Copilot');
@@ -299,25 +331,28 @@ describe('Feed Filtering Integration', () => {
     });
 
     it('should combine search with filters', async () => {
-      const combinedResults = mockExperiences.filter(exp => 
-        exp.aiAssistantType === 'ChatGPT' && 
-        exp.description.toLowerCase().includes('api')
+      const combinedResults = mockExperiences.filter(
+        (exp) =>
+          exp.aiAssistantType === 'ChatGPT' &&
+          exp.description.toLowerCase().includes('api')
       );
-      (prisma.experience.findMany as jest.Mock).mockResolvedValue(combinedResults);
+      (prisma.experience.findMany as jest.Mock).mockResolvedValue(
+        combinedResults
+      );
       (prisma.experience.count as jest.Mock).mockResolvedValue(1);
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { 
+        query: {
           ai_assistant: 'ChatGPT',
-          search: 'API'
-        }
+          search: 'API',
+        },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.experiences).toHaveLength(1);
       expect(data.experiences[0].ai_assistant_type).toBe('ChatGPT');
@@ -331,7 +366,7 @@ describe('Feed Filtering Integration', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: {}
+        query: {},
       });
 
       await handler(req, res);
@@ -342,11 +377,13 @@ describe('Feed Filtering Integration', () => {
 
   describe('Error Handling', () => {
     it('should handle database errors gracefully', async () => {
-      (prisma.experience.findMany as jest.Mock).mockRejectedValue(new Error('Database error'));
+      (prisma.experience.findMany as jest.Mock).mockRejectedValue(
+        new Error('Database error')
+      );
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: {}
+        query: {},
       });
 
       await handler(req, res);
@@ -357,7 +394,7 @@ describe('Feed Filtering Integration', () => {
     it('should validate pagination parameters', async () => {
       const { req, res } = createMocks({
         method: 'GET',
-        query: { page: 'invalid', limit: 'invalid' }
+        query: { page: 'invalid', limit: 'invalid' },
       });
 
       await handler(req, res);

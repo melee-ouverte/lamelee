@@ -1,6 +1,6 @@
 /**
  * T064-T065: GitHub Integration Testing Component
- * 
+ *
  * Simple React component for testing GitHub OAuth and URL preview functionality
  * using basic HTML elements for maximum compatibility.
  */
@@ -31,10 +31,18 @@ const GitHubIntegrationTester: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'oauth' | 'preview'>('oauth');
   const [accessToken, setAccessToken] = useState('');
-  const [repositoryUrl, setRepositoryUrl] = useState('https://github.com/octocat/Hello-World');
-  const [testUrl, setTestUrl] = useState('https://github.com/octocat/Hello-World');
-  const [oauthResults, setOauthResults] = useState<OAuthTestResult | null>(null);
-  const [previewResults, setPreviewResults] = useState<URLPreviewResult | null>(null);
+  const [repositoryUrl, setRepositoryUrl] = useState(
+    'https://github.com/octocat/Hello-World'
+  );
+  const [testUrl, setTestUrl] = useState(
+    'https://github.com/octocat/Hello-World'
+  );
+  const [oauthResults, setOauthResults] = useState<OAuthTestResult | null>(
+    null
+  );
+  const [previewResults, setPreviewResults] = useState<URLPreviewResult | null>(
+    null
+  );
 
   const testOAuth = async (action: string) => {
     setIsLoading(true);
@@ -45,7 +53,8 @@ const GitHubIntegrationTester: React.FC = () => {
         body: JSON.stringify({
           action,
           accessToken: accessToken || undefined,
-          repositoryUrl: action === 'test_repo_access' ? repositoryUrl : undefined,
+          repositoryUrl:
+            action === 'test_repo_access' ? repositoryUrl : undefined,
           requiredScopes: ['user', 'public_repo'],
         }),
       });
@@ -116,12 +125,30 @@ const GitHubIntegrationTester: React.FC = () => {
             <div className="p-4 bg-gray-50 rounded-md">
               <h4 className="font-medium mb-3">👤 User Information</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div><span className="font-medium">Username:</span> {oauthResults.user.login}</div>
-                <div><span className="font-medium">Name:</span> {oauthResults.user.name || 'N/A'}</div>
-                <div><span className="font-medium">Email:</span> {oauthResults.user.email || 'N/A'}</div>
-                <div><span className="font-medium">Public Repos:</span> {oauthResults.user.public_repos}</div>
-                <div><span className="font-medium">Followers:</span> {oauthResults.user.followers}</div>
-                <div><span className="font-medium">Following:</span> {oauthResults.user.following}</div>
+                <div>
+                  <span className="font-medium">Username:</span>{' '}
+                  {oauthResults.user.login}
+                </div>
+                <div>
+                  <span className="font-medium">Name:</span>{' '}
+                  {oauthResults.user.name || 'N/A'}
+                </div>
+                <div>
+                  <span className="font-medium">Email:</span>{' '}
+                  {oauthResults.user.email || 'N/A'}
+                </div>
+                <div>
+                  <span className="font-medium">Public Repos:</span>{' '}
+                  {oauthResults.user.public_repos}
+                </div>
+                <div>
+                  <span className="font-medium">Followers:</span>{' '}
+                  {oauthResults.user.followers}
+                </div>
+                <div>
+                  <span className="font-medium">Following:</span>{' '}
+                  {oauthResults.user.following}
+                </div>
               </div>
             </div>
           )}
@@ -130,10 +157,24 @@ const GitHubIntegrationTester: React.FC = () => {
             <div className="p-4 bg-blue-50 rounded-md">
               <h4 className="font-medium mb-3">🕒 Rate Limit Status</h4>
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div><span className="font-medium">Remaining:</span> {oauthResults.rateLimit.remaining}</div>
-                <div><span className="font-medium">Limit:</span> {oauthResults.rateLimit.limit}</div>
-                <div><span className="font-medium">Used:</span> {oauthResults.rateLimit.used}</div>
-                <div><span className="font-medium">Reset:</span> {new Date(oauthResults.rateLimit.reset * 1000).toLocaleTimeString()}</div>
+                <div>
+                  <span className="font-medium">Remaining:</span>{' '}
+                  {oauthResults.rateLimit.remaining}
+                </div>
+                <div>
+                  <span className="font-medium">Limit:</span>{' '}
+                  {oauthResults.rateLimit.limit}
+                </div>
+                <div>
+                  <span className="font-medium">Used:</span>{' '}
+                  {oauthResults.rateLimit.used}
+                </div>
+                <div>
+                  <span className="font-medium">Reset:</span>{' '}
+                  {new Date(
+                    oauthResults.rateLimit.reset * 1000
+                  ).toLocaleTimeString()}
+                </div>
               </div>
             </div>
           )}
@@ -143,7 +184,10 @@ const GitHubIntegrationTester: React.FC = () => {
               <h4 className="font-medium mb-3">Token Scopes</h4>
               <div className="flex flex-wrap gap-2">
                 {oauthResults.tokenScopes.map((scope) => (
-                  <span key={scope} className="px-2 py-1 bg-white border border-gray-200 rounded text-xs">
+                  <span
+                    key={scope}
+                    className="px-2 py-1 bg-white border border-gray-200 rounded text-xs"
+                  >
                     {scope}
                   </span>
                 ))}
@@ -181,8 +225,8 @@ const GitHubIntegrationTester: React.FC = () => {
             <div className="border rounded-lg p-4 bg-white shadow-sm">
               <div className="flex items-start gap-4">
                 {previewResults.image && (
-                  <img 
-                    src={previewResults.image} 
+                  <img
+                    src={previewResults.image}
                     alt={previewResults.title}
                     className="w-16 h-16 rounded-full object-cover flex-shrink-0"
                   />
@@ -200,9 +244,9 @@ const GitHubIntegrationTester: React.FC = () => {
                     <span className="px-2 py-1 bg-gray-100 border border-gray-200 rounded text-xs">
                       {previewResults.type}
                     </span>
-                    <a 
-                      href={previewResults.url} 
-                      target="_blank" 
+                    <a
+                      href={previewResults.url}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800 text-sm"
                     >
@@ -212,29 +256,39 @@ const GitHubIntegrationTester: React.FC = () => {
                 </div>
               </div>
 
-              {previewResults.metadata && previewResults.type === 'github-repo' && (
-                <div className="mt-4 pt-4 border-t">
-                  <h4 className="font-medium mb-3">🔧 Repository Details</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>⭐ {previewResults.metadata.stars} stars</div>
-                    <div>🍴 {previewResults.metadata.forks} forks</div>
-                    <div>👁️ {previewResults.metadata.issues} issues</div>
-                    <div><span className="font-medium">Language:</span> {previewResults.metadata.language || 'N/A'}</div>
-                  </div>
-                  {previewResults.metadata.topics && previewResults.metadata.topics.length > 0 && (
-                    <div className="mt-3">
-                      <span className="font-medium text-sm">Topics:</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {previewResults.metadata.topics.map((topic: string) => (
-                          <span key={topic} className="px-2 py-1 bg-gray-100 border border-gray-200 rounded text-xs">
-                            {topic}
-                          </span>
-                        ))}
+              {previewResults.metadata &&
+                previewResults.type === 'github-repo' && (
+                  <div className="mt-4 pt-4 border-t">
+                    <h4 className="font-medium mb-3">🔧 Repository Details</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>⭐ {previewResults.metadata.stars} stars</div>
+                      <div>🍴 {previewResults.metadata.forks} forks</div>
+                      <div>👁️ {previewResults.metadata.issues} issues</div>
+                      <div>
+                        <span className="font-medium">Language:</span>{' '}
+                        {previewResults.metadata.language || 'N/A'}
                       </div>
                     </div>
-                  )}
-                </div>
-              )}
+                    {previewResults.metadata.topics &&
+                      previewResults.metadata.topics.length > 0 && (
+                        <div className="mt-3">
+                          <span className="font-medium text-sm">Topics:</span>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {previewResults.metadata.topics.map(
+                              (topic: string) => (
+                                <span
+                                  key={topic}
+                                  className="px-2 py-1 bg-gray-100 border border-gray-200 rounded text-xs"
+                                >
+                                  {topic}
+                                </span>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+                  </div>
+                )}
             </div>
           )}
         </div>
@@ -283,7 +337,9 @@ const GitHubIntegrationTester: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">GitHub OAuth Testing</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                GitHub OAuth Testing
+              </h2>
               <p className="text-sm text-gray-600 mt-1">
                 Test GitHub OAuth token validation and API access
               </p>
@@ -297,7 +353,9 @@ const GitHubIntegrationTester: React.FC = () => {
                   type="password"
                   placeholder="ghp_... (leave empty to use environment token)"
                   value={accessToken}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAccessToken(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setAccessToken(e.target.value)
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
                 <p className="text-xs text-gray-500 mt-1">
@@ -313,34 +371,36 @@ const GitHubIntegrationTester: React.FC = () => {
                   type="text"
                   placeholder="https://github.com/owner/repo"
                   value={repositoryUrl}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRepositoryUrl(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setRepositoryUrl(e.target.value)
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <button 
+                <button
                   onClick={() => testOAuth('test_token')}
                   disabled={isLoading}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? '⏳ Testing...' : 'Test Token'}
                 </button>
-                <button 
+                <button
                   onClick={() => testOAuth('validate_scopes')}
                   disabled={isLoading}
                   className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Validate Scopes
                 </button>
-                <button 
+                <button
                   onClick={() => testOAuth('test_repo_access')}
                   disabled={isLoading}
                   className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Test Repo Access
                 </button>
-                <button 
+                <button
                   onClick={() => testOAuth('get_rate_limit')}
                   disabled={isLoading}
                   className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -359,7 +419,9 @@ const GitHubIntegrationTester: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">URL Preview Testing</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                URL Preview Testing
+              </h2>
               <p className="text-sm text-gray-600 mt-1">
                 Test URL preview generation for GitHub and other URLs
               </p>
@@ -373,33 +435,41 @@ const GitHubIntegrationTester: React.FC = () => {
                   type="text"
                   placeholder="https://github.com/owner/repo"
                   value={testUrl}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTestUrl(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setTestUrl(e.target.value)
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <button 
+                <button
                   onClick={testURLPreview}
                   disabled={isLoading || !testUrl}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? '⏳ Generating...' : 'Generate Preview'}
                 </button>
-                <button 
-                  onClick={() => setTestUrl('https://github.com/octocat/Hello-World')}
+                <button
+                  onClick={() =>
+                    setTestUrl('https://github.com/octocat/Hello-World')
+                  }
                   className="px-3 py-2 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
                 >
                   Example Repo
                 </button>
-                <button 
+                <button
                   onClick={() => setTestUrl('https://github.com/octocat')}
                   className="px-3 py-2 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
                 >
                   Example User
                 </button>
-                <button 
-                  onClick={() => setTestUrl('https://gist.github.com/octocat/6cad326836d38bd3a7ae')}
+                <button
+                  onClick={() =>
+                    setTestUrl(
+                      'https://gist.github.com/octocat/6cad326836d38bd3a7ae'
+                    )
+                  }
                   className="px-3 py-2 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
                 >
                   Example Gist

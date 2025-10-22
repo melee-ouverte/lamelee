@@ -28,6 +28,23 @@ const customJestConfig = {
     '<rootDir>/**/*.(test|spec).{js,jsx,ts,tsx}',
     '<rootDir>/tests/**/*.{js,jsx,ts,tsx}',
   ],
+  // Enable ESM support
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
+  preset: 'ts-jest/presets/default-esm',
+  globals: {
+    'ts-jest': {
+      useESM: true,
+      tsconfig: {
+        target: 'ES2017',
+        module: 'ESNext',
+        moduleResolution: 'node',
+        allowSyntheticDefaultImports: true,
+        esModuleInterop: true,
+        skipLibCheck: true,
+        strict: true,
+      },
+    },
+  },
   // Use Node environment for integration and contract tests that need Prisma
   projects: [
     {
@@ -38,6 +55,20 @@ const customJestConfig = {
       moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1',
       },
+      preset: 'ts-jest',
+      globals: {
+        'ts-jest': {
+          tsconfig: {
+            target: 'ES2017',
+            module: 'CommonJS',
+            moduleResolution: 'node',
+            allowSyntheticDefaultImports: true,
+            esModuleInterop: true,
+            skipLibCheck: true,
+            strict: true,
+          },
+        },
+      },
     },
     {
       displayName: 'contract-tests',
@@ -47,10 +78,25 @@ const customJestConfig = {
       moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1',
       },
+      preset: 'ts-jest',
+      globals: {
+        'ts-jest': {
+          tsconfig: {
+            target: 'ES2017',
+            module: 'CommonJS',
+            moduleResolution: 'node',
+            allowSyntheticDefaultImports: true,
+            esModuleInterop: true,
+            skipLibCheck: true,
+            strict: true,
+          },
+        },
+      },
     },
     {
       displayName: 'unit-tests',
       testMatch: [
+        '<rootDir>/tests/unit/**/*.test.ts',
         '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
         '<rootDir>/src/**/*.(test|spec).{js,jsx,ts,tsx}',
       ],
@@ -59,6 +105,44 @@ const customJestConfig = {
       moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1',
       },
+      preset: 'ts-jest',
+      globals: {
+        'ts-jest': {
+          tsconfig: {
+            target: 'ES2017',
+            module: 'CommonJS',
+            moduleResolution: 'node',
+            allowSyntheticDefaultImports: true,
+            esModuleInterop: true,
+            skipLibCheck: true,
+            strict: true,
+          },
+        },
+      },
+    },
+    {
+      displayName: 'performance-tests',
+      testMatch: ['<rootDir>/tests/performance/**/*.test.ts'],
+      testEnvironment: 'node',
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/src/$1',
+      },
+      preset: 'ts-jest',
+      globals: {
+        'ts-jest': {
+          tsconfig: {
+            target: 'ES2017',
+            module: 'CommonJS',
+            moduleResolution: 'node',
+            allowSyntheticDefaultImports: true,
+            esModuleInterop: true,
+            skipLibCheck: true,
+            strict: true,
+          },
+        },
+      },
+      testTimeout: 30000, // Performance tests may take longer
     },
   ],
 }

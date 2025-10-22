@@ -1,6 +1,6 @@
 /**
  * T068: CORS Middleware
- * 
+ *
  * Comprehensive CORS (Cross-Origin Resource Sharing) middleware
  * with security best practices and flexible configuration.
  */
@@ -8,7 +8,14 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
 export interface CorsOptions {
-  origin?: string | string[] | boolean | ((origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => void);
+  origin?:
+    | string
+    | string[]
+    | boolean
+    | ((
+        origin: string | undefined,
+        callback: (err: Error | null, allow?: boolean) => void
+      ) => void);
   methods?: string[];
   allowedHeaders?: string[] | '*';
   exposedHeaders?: string[];
@@ -92,23 +99,26 @@ export const DEVELOPMENT_CORS_OPTIONS: CorsOptions = {
 /**
  * Check if origin is allowed
  */
-function isOriginAllowed(origin: string | undefined, allowedOrigin: CorsOptions['origin']): boolean {
+function isOriginAllowed(
+  origin: string | undefined,
+  allowedOrigin: CorsOptions['origin']
+): boolean {
   if (allowedOrigin === true) {
     return true;
   }
-  
+
   if (allowedOrigin === false || !allowedOrigin) {
     return false;
   }
-  
+
   if (typeof allowedOrigin === 'string') {
     return origin === allowedOrigin;
   }
-  
+
   if (Array.isArray(allowedOrigin)) {
     return origin ? allowedOrigin.includes(origin) : false;
   }
-  
+
   if (typeof allowedOrigin === 'function') {
     return new Promise<boolean>((resolve) => {
       allowedOrigin(origin, (err, allow) => {
@@ -116,16 +126,20 @@ function isOriginAllowed(origin: string | undefined, allowedOrigin: CorsOptions[
       });
     }) as any; // This would need to be handled differently in real async context
   }
-  
+
   return false;
 }
 
 /**
  * Set CORS headers on response
  */
-function setCorsHeaders(req: NextApiRequest, res: NextApiResponse, options: CorsOptions) {
+function setCorsHeaders(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  options: CorsOptions
+) {
   const origin = req.headers.origin;
-  
+
   // Handle Origin header
   if (options.origin !== false) {
     if (options.origin === true) {
@@ -137,23 +151,23 @@ function setCorsHeaders(req: NextApiRequest, res: NextApiResponse, options: Cors
         res.setHeader('Access-Control-Allow-Origin', origin);
       }
     }
-    
+
     // Vary header to indicate that the response varies based on Origin
     if (options.origin !== '*') {
       res.setHeader('Vary', 'Origin');
     }
   }
-  
+
   // Handle Credentials
   if (options.credentials) {
     res.setHeader('Access-Control-Allow-Credentials', 'true');
   }
-  
+
   // Handle Methods
   if (options.methods && options.methods.length > 0) {
     res.setHeader('Access-Control-Allow-Methods', options.methods.join(','));
   }
-  
+
   // Handle Allowed Headers
   if (options.allowedHeaders) {
     if (options.allowedHeaders === '*') {
@@ -162,15 +176,21 @@ function setCorsHeaders(req: NextApiRequest, res: NextApiResponse, options: Cors
         res.setHeader('Access-Control-Allow-Headers', requestHeaders);
       }
     } else if (Array.isArray(options.allowedHeaders)) {
-      res.setHeader('Access-Control-Allow-Headers', options.allowedHeaders.join(','));
+      res.setHeader(
+        'Access-Control-Allow-Headers',
+        options.allowedHeaders.join(',')
+      );
     }
   }
-  
+
   // Handle Exposed Headers
   if (options.exposedHeaders && options.exposedHeaders.length > 0) {
-    res.setHeader('Access-Control-Expose-Headers', options.exposedHeaders.join(','));
+    res.setHeader(
+      'Access-Control-Expose-Headers',
+      options.exposedHeaders.join(',')
+    );
   }
-  
+
   // Handle Max Age
   if (options.maxAge !== undefined) {
     res.setHeader('Access-Control-Max-Age', options.maxAge.toString());
@@ -180,13 +200,17 @@ function setCorsHeaders(req: NextApiRequest, res: NextApiResponse, options: Cors
 /**
  * Handle preflight OPTIONS request
  */
-function handlePreflight(req: NextApiRequest, res: NextApiResponse, options: CorsOptions) {
+function handlePreflight(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  options: CorsOptions
+) {
   setCorsHeaders(req, res, options);
-  
+
   // Set status code for preflight
   const statusCode = options.optionsSuccessStatus || 204;
   res.status(statusCode);
-  
+
   // End the preflight request
   res.end();
 }
@@ -204,7 +228,7 @@ export function withCors(
       ...DEFAULT_CORS_OPTIONS,
       ...customOptions,
     };
-    
+
     // Use environment-specific defaults if no custom options provided
     if (!customOptions) {
       if (process.env.NODE_ENV === 'production') {
@@ -213,7 +237,7 @@ export function withCors(
         Object.assign(options, DEVELOPMENT_CORS_OPTIONS);
       }
     }
-    
+
     // Check if origin is allowed (for non-preflight requests)
     const origin = req.headers.origin;
     if (req.method !== 'OPTIONS' && options.origin !== true) {
@@ -230,16 +254,16 @@ export function withCors(
         return;
       }
     }
-    
+
     // Handle preflight OPTIONS request
     if (req.method === 'OPTIONS') {
       handlePreflight(req, res, options);
       return;
     }
-    
+
     // Set CORS headers for actual request
     setCorsHeaders(req, res, options);
-    
+
     // Continue to the actual handler
     await handler(req, res);
   };
@@ -257,13 +281,22 @@ export function withSecurityHeaders(
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-    
+    res.setHeader(
+      'Permissions-Policy',
+      'camera=(), microphone=(), geolocation=()'
+    );
+
     // Only set HSTS in production and over HTTPS
-    if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] === 'https') {
-      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    if (
+      process.env.NODE_ENV === 'production' &&
+      req.headers['x-forwarded-proto'] === 'https'
+    ) {
+      res.setHeader(
+        'Strict-Transport-Security',
+        'max-age=31536000; includeSubDomains'
+      );
     }
-    
+
     await handler(req, res);
   };
 }
@@ -280,24 +313,24 @@ export function withApiMiddleware(
   }
 ) {
   const { cors, securityHeaders = true, rateLimit = false } = options || {};
-  
+
   let wrappedHandler = handler;
-  
+
   // Apply CORS middleware
   wrappedHandler = withCors(wrappedHandler, cors);
-  
+
   // Apply security headers middleware
   if (securityHeaders) {
     wrappedHandler = withSecurityHeaders(wrappedHandler);
   }
-  
+
   // Note: Rate limiting would be implemented here if enabled
   // This is a placeholder for future rate limiting middleware
   if (rateLimit) {
     // wrappedHandler = withRateLimit(wrappedHandler);
     console.log('Rate limiting requested but not yet implemented');
   }
-  
+
   return wrappedHandler;
 }
 

@@ -1,6 +1,6 @@
 /**
  * T033: /api/experiences/[id]/comments - Experience Comments
- * 
+ *
  * Handles POST requests to create comments on experiences.
  */
 
@@ -10,7 +10,10 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { commentSchema, validationUtils } from '@/lib/validations';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     const { id } = req.query;
     const experienceId = parseInt(id as string);
@@ -36,7 +39,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 /**
  * POST /api/experiences/[id]/comments - Create comment on experience
  */
-async function handleCreateComment(req: NextApiRequest, res: NextApiResponse, experienceId: number) {
+async function handleCreateComment(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  experienceId: number
+) {
   // Check authentication
   const session = await getServerSession(req, res, authOptions);
   if (!session?.user) {
@@ -109,7 +116,6 @@ async function handleCreateComment(req: NextApiRequest, res: NextApiResponse, ex
       message: 'Comment created successfully',
       comment: formattedComment,
     });
-
   } catch (error) {
     console.error('Error creating comment:', error);
     res.status(500).json({ error: 'Failed to create comment' });

@@ -1,6 +1,6 @@
 /**
  * T069-T070: Data Retention Management API
- * 
+ *
  * API endpoint for managing data retention policies and running cleanup jobs.
  */
 
@@ -8,12 +8,24 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../lib/auth';
 import { withApiMiddleware } from '../../../lib/cors-middleware';
-import { withErrorHandling, ValidationError, AuthorizationError, validate } from '../../../lib/error-handling';
+import {
+  withErrorHandling,
+  ValidationError,
+  AuthorizationError,
+  validate,
+} from '../../../lib/error-handling';
 import { withRequestLogging } from '../../../lib/request-logging';
-import DataRetentionService, { DEFAULT_RETENTION_POLICIES } from '../../../lib/data-retention';
+import DataRetentionService, {
+  DEFAULT_RETENTION_POLICIES,
+} from '../../../lib/data-retention';
 
 interface RetentionRequest {
-  action: 'run_cleanup' | 'get_stats' | 'get_policies' | 'test_cleanup' | 'schedule_cleanup';
+  action:
+    | 'run_cleanup'
+    | 'get_stats'
+    | 'get_policies'
+    | 'test_cleanup'
+    | 'schedule_cleanup';
   cleanupType?: 'full' | 'experiences' | 'users' | 'orphaned';
   dryRun?: boolean;
   customPolicies?: Record<string, any>;
@@ -33,7 +45,7 @@ interface ApiResponse {
 
 async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
   const startTime = Date.now();
-  
+
   // Only allow POST method for cleanup operations, GET for stats
   if (!['GET', 'POST'].includes(req.method || '')) {
     return res.status(405).json({
@@ -55,18 +67,31 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
   }
 
   // Admin check
-  const isAdmin = session.user.email?.endsWith('@admin.com') || 
-                 session.user.username?.toLowerCase().includes('admin');
-  
+  const isAdmin =
+    session.user.email?.endsWith('@admin.com') ||
+    session.user.username?.toLowerCase().includes('admin');
+
   if (!isAdmin) {
-    throw new AuthorizationError('Admin privileges required for data retention management');
+    throw new AuthorizationError(
+      'Admin privileges required for data retention management'
+    );
   }
 
   const data: RetentionRequest = req.method === 'GET' ? req.query : req.body;
   const { action, cleanupType, dryRun, customPolicies } = data;
 
   validate.required(action, 'action');
-  validate.enum(action, ['run_cleanup', 'get_stats', 'get_policies', 'test_cleanup', 'schedule_cleanup'], 'action');
+  validate.enum(
+    action,
+    [
+      'run_cleanup',
+      'get_stats',
+      'get_policies',
+      'test_cleanup',
+      'schedule_cleanup',
+    ],
+    'action'
+  );
 
   let result;
   let message;
@@ -78,7 +103,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
         description: 'Current data retention policies',
         notes: {
           maxAge: 'Maximum age before soft deletion (days)',
-          gracePeriod: 'Grace period after soft deletion before hard deletion (days)',
+          gracePeriod:
+            'Grace period after soft deletion before hard deletion (days)',
           enableArchiving: 'Whether records are archived before deletion',
           batchSize: 'Number of records processed in each batch',
         },
@@ -93,7 +119,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
 
     case 'run_cleanup':
       if (cleanupType) {
-        validate.enum(cleanupType, ['full', 'experiences', 'users', 'orphaned'], 'cleanupType');
+        validate.enum(
+          cleanupType,
+          ['full', 'experiences', 'users', 'orphaned'],
+          'cleanupType'
+        );
       }
 
       if (dryRun) {
@@ -110,12 +140,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
         switch (cleanupType) {
           case 'experiences':
             result = [
-              await DataRetentionService.cleanupOldExperiences(DEFAULT_RETENTION_POLICIES.experiences),
-              await DataRetentionService.cleanupSoftDeletedExperiences(DEFAULT_RETENTION_POLICIES.experiences),
+              await DataRetentionService.cleanupOldExperiences(
+                DEFAULT_RETENTION_POLICIES.experiences
+              ),
+              await DataRetentionService.cleanupSoftDeletedExperiences(
+                DEFAULT_RETENTION_POLICIES.experiences
+              ),
             ];
             break;
           case 'users':
-            result = [await DataRetentionService.cleanupSoftDeletedUsers(DEFAULT_RETENTION_POLICIES.users)];
+            result = [
+              await DataRetentionService.cleanupSoftDeletedUsers(
+                DEFAULT_RETENTION_POLICIES.users
+              ),
+            ];
             break;
           case 'orphaned':
             result = [await DataRetentionService.cleanupOrphanedRecords()];
@@ -136,7 +174,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
         currentStats: await DataRetentionService.getRetentionStats(),
         policies: DEFAULT_RETENTION_POLICIES,
         recommendations: {
-          experiences: 'Run experience cleanup if recordsEligibleForCleanup > 0',
+          experiences:
+            'Run experience cleanup if recordsEligibleForCleanup > 0',
           users: 'Run user cleanup if recordsEligibleForCleanup > 0',
           general: 'Schedule regular cleanup to maintain database performance',
         },
@@ -151,7 +190,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
         interval: '24 hours',
         nextRun: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         note: 'In production, this would configure actual scheduled jobs',
-        implementation: 'Use cron jobs, AWS Lambda scheduled events, or similar',
+        implementation:
+          'Use cron jobs, AWS Lambda scheduled events, or similar',
       };
       message = 'Cleanup scheduling configured (mock)';
       break;
@@ -177,14 +217,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse>) {
 
 // Apply all middleware layers
 export default withApiMiddleware(
-  withErrorHandling(
-    withRequestLogging(handler)
-  ),
+  withErrorHandling(withRequestLogging(handler)),
   {
     cors: {
-      origin: process.env.NODE_ENV === 'production' 
-        ? ['https://yourdomain.com'] 
-        : true,
+      origin:
+        process.env.NODE_ENV === 'production'
+          ? ['https://yourdomain.com']
+          : true,
       methods: ['GET', 'POST'],
       credentials: true,
     },

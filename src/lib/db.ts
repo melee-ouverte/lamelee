@@ -1,8 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 
 /**
  * T043: Prisma Database Client Configuration
- * 
+ *
  * Enhanced Prisma client with proper connection pooling, logging,
  * and error handling for the AI Coding Assistant platform.
  */
@@ -14,46 +14,26 @@ declare global {
 
 // Enhanced connection configuration for optimal performance and concurrency
 const connectionConfig = {
-  log: process.env.NODE_ENV === "development" 
-    ? ["query", "error", "warn", "info"] as const
-    : ["error"] as const,
-  
+  log: (process.env.NODE_ENV === 'development'
+    ? ['query', 'error', 'warn', 'info']
+    : ['error']) as ('query' | 'error' | 'warn' | 'info')[],
+
   // Error formatting for better debugging
-  errorFormat: "pretty" as const,
-  
+  errorFormat: 'pretty' as const,
+
   // Connection pool settings for high concurrency
   datasources: {
     db: {
       url: process.env.DATABASE_URL,
     },
   },
-  
-  // Connection pool configuration
-  // Note: For SQLite, connection pooling is limited, but we configure for production readiness
-  __internal: {
-    engine: {
-      // Connection pool size (15+ for concurrent users)
-      connectionLimit: parseInt(process.env.DATABASE_CONNECTION_LIMIT || "20"),
-      
-      // Connection timeout (30 seconds)
-      connectTimeout: 30000,
-      
-      // Query timeout (10 seconds)
-      queryTimeout: 10000,
-      
-      // Pool timeout (30 seconds)
-      poolTimeout: 30000,
-    },
-  },
-};
+} as const;
 
 // Create singleton Prisma client instance
-export const prisma = 
-  global.prisma ||
-  new PrismaClient(connectionConfig);
+export const prisma = global.prisma || new PrismaClient(connectionConfig);
 
 // Store in global during development to prevent hot reload issues
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV !== 'production') {
   global.prisma = prisma;
 }
 
@@ -67,7 +47,7 @@ export const dbUtils = {
       await prisma.$queryRaw`SELECT 1`;
       return true;
     } catch (error) {
-      console.error("Database health check failed:", error);
+      console.error('Database health check failed:', error);
       return false;
     }
   },
@@ -90,7 +70,7 @@ export const dbUtils = {
         timestamp: new Date().toISOString(),
       };
     } catch (error) {
-      console.error("Failed to get database stats:", error);
+      console.error('Failed to get database stats:', error);
       throw error;
     }
   },
@@ -138,11 +118,17 @@ export const dbUtils = {
       return {
         healthy: true,
         responseTime,
-        maxConnections: parseInt(process.env.DATABASE_CONNECTION_LIMIT || "20"),
-        database: process.env.DATABASE_URL?.includes('sqlite') ? 'SQLite' : 'Unknown',
+        maxConnections: parseInt(process.env.DATABASE_CONNECTION_LIMIT || '20'),
+        database: process.env.DATABASE_URL?.startsWith('file:')
+          ? 'SQLite'
+          : process.env.DATABASE_URL?.includes('postgresql')
+            ? 'PostgreSQL'
+            : process.env.DATABASE_URL?.includes('mysql')
+              ? 'MySQL'
+              : 'Unknown',
       };
     } catch (error) {
-      console.error("Connection info check failed:", error);
+      console.error('Connection info check failed:', error);
       return {
         healthy: false,
         responseTime: -1,

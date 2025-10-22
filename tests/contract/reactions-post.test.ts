@@ -1,9 +1,9 @@
 /**
  * Contract Test: POST /api/experiences/{id}/reactions
- * 
+ *
  * This test validates the API contract for adding reactions to experiences.
  * According to the OpenAPI specification in contracts/api.yaml
- * 
+ *
  * Test Status: RED (Must fail before implementation)
  * Related Task: T012
  * Implementation Task: T039
@@ -14,7 +14,7 @@ import handler from '@/pages/api/experiences/[id]/reactions';
 
 describe('/api/experiences/{id}/reactions POST', () => {
   const reactionData = {
-    reaction_type: 'helpful'
+    reaction_type: 'helpful',
   };
 
   it('should create reaction with valid type', async () => {
@@ -22,13 +22,13 @@ describe('/api/experiences/{id}/reactions POST', () => {
       method: 'POST',
       query: { id: '1' },
       body: reactionData,
-      headers: { 'content-type': 'application/json' }
+      headers: { 'content-type': 'application/json' },
     });
 
     await handler(req, res);
 
     expect(res._getStatusCode()).toBe(201);
-    
+
     const data = JSON.parse(res._getData());
     expect(data).toHaveProperty('id');
     expect(data).toHaveProperty('user_id');
@@ -39,20 +39,20 @@ describe('/api/experiences/{id}/reactions POST', () => {
 
   it('should validate reaction type enum', async () => {
     const invalidData = {
-      reaction_type: 'invalid_reaction'
+      reaction_type: 'invalid_reaction',
     };
 
     const { req, res } = createMocks({
       method: 'POST',
       query: { id: '1' },
       body: invalidData,
-      headers: { 'content-type': 'application/json' }
+      headers: { 'content-type': 'application/json' },
     });
 
     await handler(req, res);
 
     expect(res._getStatusCode()).toBe(400);
-    
+
     const data = JSON.parse(res._getData());
     expect(data).toHaveProperty('error');
     expect(data.error).toMatch(/reaction_type.*like|helpful|bookmark/i);
@@ -63,7 +63,7 @@ describe('/api/experiences/{id}/reactions POST', () => {
       method: 'POST',
       query: { id: '1' },
       body: reactionData,
-      headers: { 'content-type': 'application/json' }
+      headers: { 'content-type': 'application/json' },
     });
 
     await handler(req, res);

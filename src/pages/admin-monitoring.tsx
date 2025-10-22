@@ -1,6 +1,6 @@
 /**
  * T066-T068: Admin Monitoring Dashboard Page
- * 
+ *
  * Admin page for viewing system monitoring data and testing middleware
  */
 
@@ -32,8 +32,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 
   // Simple admin check
-  const isAdmin = session.user.email?.endsWith('@admin.com') || 
-                 session.user.username?.toLowerCase().includes('admin');
+  const isAdmin =
+    session.user.email?.endsWith('@admin.com') ||
+    session.user.username?.toLowerCase().includes('admin');
 
   if (!isAdmin) {
     return {

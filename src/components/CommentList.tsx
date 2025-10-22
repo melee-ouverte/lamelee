@@ -14,17 +14,17 @@ interface Comment {
 }
 
 interface CommentListProps {
-  experienceId: string;
+  _experienceId: number;
   comments: Comment[];
   onAddComment?: (content: string) => Promise<void>;
   isLoading?: boolean;
 }
 
-export default function CommentList({ 
-  experienceId, 
-  comments, 
+export default function CommentList({
+  _experienceId,
+  comments,
   onAddComment,
-  isLoading = false 
+  isLoading = false,
 }: CommentListProps) {
   const { data: session } = useSession();
   const [newComment, setNewComment] = useState('');
@@ -48,12 +48,15 @@ export default function CommentList({
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    const diffInMinutes = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60)
+    );
 
     if (diffInMinutes < 1) return 'just now';
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-    if (diffInMinutes < 10080) return `${Math.floor(diffInMinutes / 1440)}d ago`;
+    if (diffInMinutes < 10080)
+      return `${Math.floor(diffInMinutes / 1440)}d ago`;
     return date.toLocaleDateString();
   };
 
@@ -102,7 +105,11 @@ export default function CommentList({
                 </div>
                 <button
                   type="submit"
-                  disabled={!newComment.trim() || isSubmitting || newComment.length > 500}
+                  disabled={
+                    !newComment.trim() ||
+                    isSubmitting ||
+                    newComment.length > 500
+                  }
                   className="inline-flex items-center space-x-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <Send className="h-4 w-4" />
@@ -123,8 +130,8 @@ export default function CommentList({
               className="font-medium text-blue-600 hover:text-blue-500"
             >
               Sign in with GitHub
-            </a>
-            {' '}to join the discussion
+            </a>{' '}
+            to join the discussion
           </p>
         </div>
       )}

@@ -1,6 +1,6 @@
 /**
  * T034: /api/experiences/[id]/reactions - Experience Reactions
- * 
+ *
  * Handles POST requests to add/update reactions on experiences.
  */
 
@@ -10,7 +10,10 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { reactionSchema, validationUtils } from '@/lib/validations';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     const { id } = req.query;
     const experienceId = parseInt(id as string);
@@ -36,7 +39,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 /**
  * POST /api/experiences/[id]/reactions - Create or update reaction
  */
-async function handleCreateOrUpdateReaction(req: NextApiRequest, res: NextApiResponse, experienceId: number) {
+async function handleCreateOrUpdateReaction(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  experienceId: number
+) {
   // Check authentication
   const session = await getServerSession(req, res, authOptions);
   if (!session?.user) {
@@ -139,10 +146,13 @@ async function handleCreateOrUpdateReaction(req: NextApiRequest, res: NextApiRes
       _count: { reactionType: true },
     });
 
-    const formattedReactionCounts = reactionCounts.reduce((acc: any, item: any) => {
-      acc[item.reactionType] = item._count.reactionType;
-      return acc;
-    }, {});
+    const formattedReactionCounts = reactionCounts.reduce(
+      (acc: any, item: any) => {
+        acc[item.reactionType] = item._count.reactionType;
+        return acc;
+      },
+      {}
+    );
 
     // Format response
     const formattedReaction = {
@@ -157,11 +167,12 @@ async function handleCreateOrUpdateReaction(req: NextApiRequest, res: NextApiRes
     };
 
     res.status(isUpdate ? 200 : 201).json({
-      message: isUpdate ? 'Reaction updated successfully' : 'Reaction added successfully',
+      message: isUpdate
+        ? 'Reaction updated successfully'
+        : 'Reaction added successfully',
       reaction: formattedReaction,
       reactionCounts: formattedReactionCounts,
     });
-
   } catch (error) {
     console.error('Error creating/updating reaction:', error);
     res.status(500).json({ error: 'Failed to process reaction' });

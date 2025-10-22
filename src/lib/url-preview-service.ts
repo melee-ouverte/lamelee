@@ -1,6 +1,6 @@
 /**
  * T065: GitHub URL Preview Service
- * 
+ *
  * Provides URL preview functionality for GitHub repositories and other URLs,
  * fetching metadata, repository information, and generating rich previews.
  */
@@ -70,10 +70,10 @@ export class URLPreviewService {
     try {
       // Normalize URL
       const normalizedUrl = this.normalizeUrl(url);
-      
+
       // Determine URL type
       const urlType = this.determineUrlType(normalizedUrl);
-      
+
       switch (urlType) {
         case 'github-repo':
           return await this.generateGitHubRepoPreview(normalizedUrl);
@@ -88,7 +88,10 @@ export class URLPreviewService {
       }
     } catch (error: any) {
       console.error('URL preview generation failed:', error);
-      return this.createErrorPreview(url, error.message || 'Preview generation failed');
+      return this.createErrorPreview(
+        url,
+        error.message || 'Preview generation failed'
+      );
     }
   }
 
@@ -97,7 +100,7 @@ export class URLPreviewService {
    */
   private async generateGitHubRepoPreview(url: string): Promise<URLPreview> {
     const { owner, repo } = this.parseGitHubRepoUrl(url) || {};
-    
+
     if (!owner || !repo) {
       return this.createErrorPreview(url, 'Invalid GitHub repository URL');
     }
@@ -105,7 +108,9 @@ export class URLPreviewService {
     try {
       const [repoResponse, languagesResponse] = await Promise.all([
         this.octokit.rest.repos.get({ owner, repo }),
-        this.octokit.rest.repos.listLanguages({ owner, repo }).catch(() => ({ data: {} })),
+        this.octokit.rest.repos
+          .listLanguages({ owner, repo })
+          .catch(() => ({ data: {} })),
       ]);
 
       const repoData = repoResponse.data;
@@ -137,7 +142,9 @@ export class URLPreviewService {
         url,
         type: 'github-repo',
         title: repoData.full_name,
-        description: repoData.description || `${repoData.language || 'Code'} repository by ${repoData.owner.login}`,
+        description:
+          repoData.description ||
+          `${repoData.language || 'Code'} repository by ${repoData.owner.login}`,
         image: repoData.owner.avatar_url,
         metadata: preview,
       };
@@ -154,13 +161,15 @@ export class URLPreviewService {
    */
   private async generateGitHubUserPreview(url: string): Promise<URLPreview> {
     const username = this.parseGitHubUserUrl(url);
-    
+
     if (!username) {
       return this.createErrorPreview(url, 'Invalid GitHub user URL');
     }
 
     try {
-      const userResponse = await this.octokit.rest.users.getByUsername({ username });
+      const userResponse = await this.octokit.rest.users.getByUsername({
+        username,
+      });
       const userData = userResponse.data;
 
       const preview: GitHubUserPreview = {
@@ -183,7 +192,9 @@ export class URLPreviewService {
         url,
         type: 'github-user',
         title: userData.name || userData.login,
-        description: userData.bio || `GitHub user with ${userData.public_repos} public repositories`,
+        description:
+          userData.bio ||
+          `GitHub user with ${userData.public_repos} public repositories`,
         image: userData.avatar_url,
         metadata: preview,
       };
@@ -200,13 +211,15 @@ export class URLPreviewService {
    */
   private async generateGitHubGistPreview(url: string): Promise<URLPreview> {
     const gistId = this.parseGitHubGistUrl(url);
-    
+
     if (!gistId) {
       return this.createErrorPreview(url, 'Invalid GitHub Gist URL');
     }
 
     try {
-      const gistResponse = await this.octokit.rest.gists.get({ gist_id: gistId });
+      const gistResponse = await this.octokit.rest.gists.get({
+        gist_id: gistId,
+      });
       const gistData = gistResponse.data;
 
       const fileNames = Object.keys(gistData.files || {});
@@ -245,7 +258,7 @@ export class URLPreviewService {
       // For now, return a basic preview
       // In a production app, you'd want to fetch the URL and parse meta tags
       const urlObj = new URL(url);
-      
+
       return {
         url,
         type: 'generic',
@@ -273,29 +286,34 @@ export class URLPreviewService {
 
   private determineUrlType(url: string): URLPreview['type'] {
     const urlObj = new URL(url);
-    
-    if (urlObj.hostname === 'github.com' || urlObj.hostname === 'www.github.com') {
+
+    if (
+      urlObj.hostname === 'github.com' ||
+      urlObj.hostname === 'www.github.com'
+    ) {
       const pathParts = urlObj.pathname.split('/').filter(Boolean);
-      
+
       if (pathParts.length === 1) {
         return 'github-user';
       } else if (pathParts.length >= 2 && !pathParts[0].startsWith('gist')) {
         return 'github-repo';
       }
     }
-    
+
     if (urlObj.hostname === 'gist.github.com') {
       return 'github-gist';
     }
-    
+
     return 'generic';
   }
 
-  private parseGitHubRepoUrl(url: string): { owner: string; repo: string } | null {
+  private parseGitHubRepoUrl(
+    url: string
+  ): { owner: string; repo: string } | null {
     try {
       const urlObj = new URL(url);
       const pathParts = urlObj.pathname.split('/').filter(Boolean);
-      
+
       if (pathParts.length >= 2) {
         return {
           owner: pathParts[0],
@@ -312,7 +330,7 @@ export class URLPreviewService {
     try {
       const urlObj = new URL(url);
       const pathParts = urlObj.pathname.split('/').filter(Boolean);
-      
+
       if (pathParts.length === 1) {
         return pathParts[0];
       }
@@ -326,7 +344,7 @@ export class URLPreviewService {
     try {
       const urlObj = new URL(url);
       const pathParts = urlObj.pathname.split('/').filter(Boolean);
-      
+
       // Gist URLs: gist.github.com/username/gist_id
       if (pathParts.length >= 2) {
         return pathParts[1];
@@ -358,7 +376,9 @@ export const URLPreviewUtils = {
   isGitHubUrl(url: string): boolean {
     try {
       const urlObj = new URL(url);
-      return ['github.com', 'www.github.com', 'gist.github.com'].includes(urlObj.hostname);
+      return ['github.com', 'www.github.com', 'gist.github.com'].includes(
+        urlObj.hostname
+      );
     } catch {
       return false;
     }
@@ -367,19 +387,24 @@ export const URLPreviewUtils = {
   /**
    * Extract GitHub repository info from URL
    */
-  extractGitHubInfo(url: string): { type: string; owner?: string; repo?: string; gistId?: string } | null {
+  extractGitHubInfo(
+    url: string
+  ): { type: string; owner?: string; repo?: string; gistId?: string } | null {
     try {
       const urlObj = new URL(url);
       const pathParts = urlObj.pathname.split('/').filter(Boolean);
-      
+
       if (urlObj.hostname === 'gist.github.com' && pathParts.length >= 2) {
         return {
           type: 'gist',
           gistId: pathParts[1],
         };
       }
-      
-      if (urlObj.hostname === 'github.com' || urlObj.hostname === 'www.github.com') {
+
+      if (
+        urlObj.hostname === 'github.com' ||
+        urlObj.hostname === 'www.github.com'
+      ) {
         if (pathParts.length === 1) {
           return {
             type: 'user',
@@ -393,7 +418,7 @@ export const URLPreviewUtils = {
           };
         }
       }
-      
+
       return null;
     } catch {
       return null;

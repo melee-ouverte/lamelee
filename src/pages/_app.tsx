@@ -1,6 +1,6 @@
 /**
  * Next.js App Component with NextAuth Session Provider
- * 
+ *
  * This wraps the entire application with necessary providers
  * including NextAuth for authentication state management.
  */

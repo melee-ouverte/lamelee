@@ -1,9 +1,9 @@
 /**
  * Contract Test: POST /api/prompts/{id}/ratings
- * 
+ *
  * This test validates the API contract for rating prompts.
  * According to the OpenAPI specification in contracts/api.yaml
- * 
+ *
  * Test Status: RED (Must fail before implementation)
  * Related Task: T013
  * Implementation Task: T040
@@ -14,7 +14,7 @@ import handler from '@/pages/api/prompts/[id]/ratings';
 
 describe('/api/prompts/{id}/ratings POST', () => {
   const ratingData = {
-    rating: 5
+    rating: 5,
   };
 
   it('should create rating with valid 1-5 scale', async () => {
@@ -22,13 +22,13 @@ describe('/api/prompts/{id}/ratings POST', () => {
       method: 'POST',
       query: { id: '1' },
       body: ratingData,
-      headers: { 'content-type': 'application/json' }
+      headers: { 'content-type': 'application/json' },
     });
 
     await handler(req, res);
 
     expect(res._getStatusCode()).toBe(201);
-    
+
     const data = JSON.parse(res._getData());
     expect(data).toHaveProperty('id');
     expect(data).toHaveProperty('user_id');
@@ -39,20 +39,20 @@ describe('/api/prompts/{id}/ratings POST', () => {
 
   it('should validate rating range (1-5)', async () => {
     const invalidData = {
-      rating: 6 // Outside valid range
+      rating: 6, // Outside valid range
     };
 
     const { req, res } = createMocks({
       method: 'POST',
       query: { id: '1' },
       body: invalidData,
-      headers: { 'content-type': 'application/json' }
+      headers: { 'content-type': 'application/json' },
     });
 
     await handler(req, res);
 
     expect(res._getStatusCode()).toBe(400);
-    
+
     const data = JSON.parse(res._getData());
     expect(data).toHaveProperty('error');
     expect(data.error).toMatch(/rating.*1.*5/i);
@@ -60,20 +60,20 @@ describe('/api/prompts/{id}/ratings POST', () => {
 
   it('should validate rating is integer', async () => {
     const invalidData = {
-      rating: 3.5 // Should be integer
+      rating: 3.5, // Should be integer
     };
 
     const { req, res } = createMocks({
       method: 'POST',
       query: { id: '1' },
       body: invalidData,
-      headers: { 'content-type': 'application/json' }
+      headers: { 'content-type': 'application/json' },
     });
 
     await handler(req, res);
 
     expect(res._getStatusCode()).toBe(400);
-    
+
     const data = JSON.parse(res._getData());
     expect(data).toHaveProperty('error');
     expect(data.error).toMatch(/rating.*integer/i);
@@ -84,13 +84,13 @@ describe('/api/prompts/{id}/ratings POST', () => {
       method: 'POST',
       query: { id: '1' },
       body: ratingData,
-      headers: { 'content-type': 'application/json' }
+      headers: { 'content-type': 'application/json' },
     });
 
     await handler(req, res);
 
     expect(res._getStatusCode()).toBe(201);
-    
+
     const data = JSON.parse(res._getData());
     expect(data).toHaveProperty('average_rating');
     expect(data).toHaveProperty('rating_count');
@@ -101,7 +101,7 @@ describe('/api/prompts/{id}/ratings POST', () => {
       method: 'POST',
       query: { id: '1' },
       body: ratingData,
-      headers: { 'content-type': 'application/json' }
+      headers: { 'content-type': 'application/json' },
     });
 
     await handler(req, res);

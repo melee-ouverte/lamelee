@@ -61,7 +61,9 @@ interface ExperienceDetailProps {
   };
 }
 
-export default function ExperienceDetail({ experience }: ExperienceDetailProps) {
+export default function ExperienceDetail({
+  experience,
+}: ExperienceDetailProps) {
   const { data: session } = useSession();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -82,11 +84,14 @@ export default function ExperienceDetail({ experience }: ExperienceDetailProps) 
   };
 
   const handleReact = async (reactionType: string) => {
-    const response = await fetch(`/api/experiences/${experience.id}/reactions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: reactionType }),
-    });
+    const response = await fetch(
+      `/api/experiences/${experience.id}/reactions`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: reactionType }),
+      }
+    );
 
     if (!response.ok) {
       throw new Error('Failed to react');
@@ -122,7 +127,9 @@ export default function ExperienceDetail({ experience }: ExperienceDetailProps) 
   return (
     <Layout>
       <Head>
-        <title>{experience.title} - AI Coding Assistant Experience Platform</title>
+        <title>
+          {experience.title} - AI Coding Assistant Experience Platform
+        </title>
         <meta name="description" content={experience.description} />
       </Head>
 
@@ -134,7 +141,7 @@ export default function ExperienceDetail({ experience }: ExperienceDetailProps) 
               <h1 className="text-2xl font-bold text-gray-900 mb-3">
                 {experience.title}
               </h1>
-              
+
               {experience.isNews && (
                 <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mb-3">
                   News
@@ -203,10 +210,7 @@ export default function ExperienceDetail({ experience }: ExperienceDetailProps) 
 
             {/* Author Profile */}
             <div className="ml-6 flex-shrink-0 w-64">
-              <UserProfile 
-                user={experience.user} 
-                showStats={false}
-              />
+              <UserProfile user={experience.user} showStats={false} />
             </div>
           </div>
 
@@ -305,7 +309,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         reactions: {
           select: {
             id: true,
-            type: true,
+            reactionType: true,
             userId: true,
           },
         },
@@ -323,12 +327,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       createdAt: experience.createdAt.toISOString(),
       updatedAt: experience.updatedAt.toISOString(),
       user: {
-        ...experience.user,
-        id: experience.user.id.toString(),
-        githubId: experience.user.githubId.toString(),
-        createdAt: experience.user.createdAt.toISOString(),
+        ...(experience as any).user,
+        id: (experience as any).user.id.toString(),
+        githubId: (experience as any).user.githubId.toString(),
+        createdAt: (experience as any).user.createdAt.toISOString(),
       },
-      prompts: experience.prompts.map((prompt: any) => ({
+      prompts: (experience as any).prompts.map((prompt: any) => ({
         ...prompt,
         id: prompt.id.toString(),
         createdAt: prompt.createdAt.toISOString(),
@@ -337,7 +341,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           id: rating.id.toString(),
         })),
       })),
-      comments: experience.comments.map((comment: any) => ({
+      comments: (experience as any).comments.map((comment: any) => ({
         ...comment,
         id: comment.id.toString(),
         createdAt: comment.createdAt.toISOString(),
@@ -346,7 +350,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           id: comment.user.id.toString(),
         },
       })),
-      reactions: experience.reactions.map((reaction: any) => ({
+      reactions: (experience as any).reactions.map((reaction: any) => ({
         ...reaction,
         id: reaction.id.toString(),
       })),

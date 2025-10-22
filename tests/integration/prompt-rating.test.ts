@@ -1,9 +1,9 @@
 /**
  * Integration Test: Prompt Rating System (1-5 Scale)
- * 
+ *
  * This test validates the complete prompt rating functionality.
  * Based on User Journey Validation from quickstart.md
- * 
+ *
  * Test Status: RED (Must fail before implementation)
  * Related Task: T022
  * Implementation Tasks: T040 (POST /api/prompts/{id}/ratings)
@@ -22,7 +22,7 @@ describe('Prompt Rating Integration', () => {
     id: '1',
     githubId: 12345,
     username: 'testuser',
-    email: 'test@example.com'
+    email: 'test@example.com',
   };
 
   beforeEach(() => {
@@ -39,29 +39,31 @@ describe('Prompt Rating Integration', () => {
         userId: parseInt(mockUser.id),
         promptId: 1,
         rating: 5,
-        createdAt: new Date()
+        createdAt: new Date(),
       };
 
       const updatedPrompt = {
         id: 1,
         averageRating: 4.5,
-        ratingCount: 3
+        ratingCount: 3,
       };
 
-      (prisma.promptRating.create as jest.Mock).mockResolvedValue(createdRating);
+      (prisma.promptRating.create as jest.Mock).mockResolvedValue(
+        createdRating
+      );
       (prisma.prompt.update as jest.Mock).mockResolvedValue(updatedPrompt);
 
       const { req, res } = createMocks({
         method: 'POST',
         query: { id: '1' },
         body: ratingData,
-        headers: { 'content-type': 'application/json' }
+        headers: { 'content-type': 'application/json' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(201);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.rating).toBe(5);
       expect(data.user_id).toBe(parseInt(mockUser.id));
@@ -76,13 +78,13 @@ describe('Prompt Rating Integration', () => {
           method: 'POST',
           query: { id: '1' },
           body: { rating },
-          headers: { 'content-type': 'application/json' }
+          headers: { 'content-type': 'application/json' },
         });
 
         await handler(req, res);
 
         expect(res._getStatusCode()).toBe(400);
-        
+
         const data = JSON.parse(res._getData());
         expect(data.error).toMatch(/rating.*1.*5/i);
       }
@@ -95,13 +97,13 @@ describe('Prompt Rating Integration', () => {
         method: 'POST',
         query: { id: '1' },
         body: floatRating,
-        headers: { 'content-type': 'application/json' }
+        headers: { 'content-type': 'application/json' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(400);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.error).toMatch(/rating.*integer/i);
     });
@@ -115,7 +117,7 @@ describe('Prompt Rating Integration', () => {
       (prisma.promptRating.findMany as jest.Mock).mockResolvedValue([
         { rating: 5 },
         { rating: 3 },
-        { rating: 4 } // New rating
+        { rating: 4 }, // New rating
       ]);
 
       const createdRating = {
@@ -123,29 +125,31 @@ describe('Prompt Rating Integration', () => {
         userId: parseInt(mockUser.id),
         promptId: 1,
         rating: 4,
-        createdAt: new Date()
+        createdAt: new Date(),
       };
 
       const updatedPrompt = {
         id: 1,
         averageRating: 4.0, // (5 + 3 + 4) / 3 = 4.0
-        ratingCount: 3
+        ratingCount: 3,
       };
 
-      (prisma.promptRating.create as jest.Mock).mockResolvedValue(createdRating);
+      (prisma.promptRating.create as jest.Mock).mockResolvedValue(
+        createdRating
+      );
       (prisma.prompt.update as jest.Mock).mockResolvedValue(updatedPrompt);
 
       const { req, res } = createMocks({
         method: 'POST',
         query: { id: '1' },
         body: ratingData,
-        headers: { 'content-type': 'application/json' }
+        headers: { 'content-type': 'application/json' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(201);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.average_rating).toBe(4.0);
       expect(data.rating_count).toBe(3);
@@ -155,7 +159,7 @@ describe('Prompt Rating Integration', () => {
       const ratingData = { rating: 5 };
 
       (prisma.promptRating.findMany as jest.Mock).mockResolvedValue([
-        { rating: 5 } // First rating
+        { rating: 5 }, // First rating
       ]);
 
       const createdRating = {
@@ -163,29 +167,31 @@ describe('Prompt Rating Integration', () => {
         userId: parseInt(mockUser.id),
         promptId: 1,
         rating: 5,
-        createdAt: new Date()
+        createdAt: new Date(),
       };
 
       const updatedPrompt = {
         id: 1,
         averageRating: 5.0,
-        ratingCount: 1
+        ratingCount: 1,
       };
 
-      (prisma.promptRating.create as jest.Mock).mockResolvedValue(createdRating);
+      (prisma.promptRating.create as jest.Mock).mockResolvedValue(
+        createdRating
+      );
       (prisma.prompt.update as jest.Mock).mockResolvedValue(updatedPrompt);
 
       const { req, res } = createMocks({
         method: 'POST',
         query: { id: '1' },
         body: ratingData,
-        headers: { 'content-type': 'application/json' }
+        headers: { 'content-type': 'application/json' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(201);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.average_rating).toBe(5.0);
       expect(data.rating_count).toBe(1);
@@ -200,20 +206,20 @@ describe('Prompt Rating Integration', () => {
         { rating: 4 },
         { rating: 3 },
         { rating: 5 },
-        { rating: 2 } // New rating
+        { rating: 2 }, // New rating
       ]);
 
       const updatedPrompt = {
         id: 1,
         averageRating: 3.8, // (5 + 4 + 3 + 5 + 2) / 5 = 3.8
-        ratingCount: 5
+        ratingCount: 5,
       };
 
       (prisma.promptRating.create as jest.Mock).mockResolvedValue({
         id: 1,
         userId: parseInt(mockUser.id),
         promptId: 1,
-        rating: 2
+        rating: 2,
       });
 
       (prisma.prompt.update as jest.Mock).mockResolvedValue(updatedPrompt);
@@ -222,13 +228,13 @@ describe('Prompt Rating Integration', () => {
         method: 'POST',
         query: { id: '1' },
         body: ratingData,
-        headers: { 'content-type': 'application/json' }
+        headers: { 'content-type': 'application/json' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(201);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.average_rating).toBe(3.8);
       expect(data.rating_count).toBe(5);
@@ -242,20 +248,20 @@ describe('Prompt Rating Integration', () => {
       // Mock unique constraint violation
       (prisma.promptRating.create as jest.Mock).mockRejectedValue({
         code: 'P2002', // Prisma unique constraint error
-        meta: { target: ['userId', 'promptId'] }
+        meta: { target: ['userId', 'promptId'] },
       });
 
       const { req, res } = createMocks({
         method: 'POST',
         query: { id: '1' },
         body: ratingData,
-        headers: { 'content-type': 'application/json' }
+        headers: { 'content-type': 'application/json' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(409);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.error).toMatch(/already rated/i);
     });
@@ -270,27 +276,29 @@ describe('Prompt Rating Integration', () => {
         promptId: 1,
         rating: 3,
         createdAt: new Date('2024-01-01'),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
-      (prisma.promptRating.upsert as jest.Mock).mockResolvedValue(updatedRating);
+      (prisma.promptRating.upsert as jest.Mock).mockResolvedValue(
+        updatedRating
+      );
       (prisma.prompt.update as jest.Mock).mockResolvedValue({
         id: 1,
         averageRating: 3.5,
-        ratingCount: 2
+        ratingCount: 2,
       });
 
       const { req, res } = createMocks({
         method: 'POST',
         query: { id: '1' },
         body: ratingData,
-        headers: { 'content-type': 'application/json' }
+        headers: { 'content-type': 'application/json' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(201);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.rating).toBe(3);
     });
@@ -304,7 +312,7 @@ describe('Prompt Rating Integration', () => {
         method: 'POST',
         query: { id: '1' },
         body: { rating: 5 },
-        headers: { 'content-type': 'application/json' }
+        headers: { 'content-type': 'application/json' },
       });
 
       await handler(req, res);
@@ -319,13 +327,13 @@ describe('Prompt Rating Integration', () => {
         method: 'POST',
         query: { id: '99999' },
         body: { rating: 5 },
-        headers: { 'content-type': 'application/json' }
+        headers: { 'content-type': 'application/json' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(404);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.error).toMatch(/prompt.*not found/i);
     });
@@ -340,26 +348,26 @@ describe('Prompt Rating Integration', () => {
           id: 1,
           userId: parseInt(mockUser.id),
           promptId: 1,
-          rating
+          rating,
         });
 
         (prisma.prompt.update as jest.Mock).mockResolvedValue({
           id: 1,
           averageRating: rating,
-          ratingCount: 1
+          ratingCount: 1,
         });
 
         const { req, res } = createMocks({
           method: 'POST',
           query: { id: '1' },
           body: { rating },
-          headers: { 'content-type': 'application/json' }
+          headers: { 'content-type': 'application/json' },
         });
 
         await handler(req, res);
 
         expect(res._getStatusCode()).toBe(201);
-        
+
         const data = JSON.parse(res._getData());
         expect(data.rating).toBe(rating);
       }
@@ -368,13 +376,15 @@ describe('Prompt Rating Integration', () => {
 
   describe('Error Handling', () => {
     it('should handle database errors gracefully', async () => {
-      (prisma.promptRating.create as jest.Mock).mockRejectedValue(new Error('Database error'));
+      (prisma.promptRating.create as jest.Mock).mockRejectedValue(
+        new Error('Database error')
+      );
 
       const { req, res } = createMocks({
         method: 'POST',
         query: { id: '1' },
         body: { rating: 5 },
-        headers: { 'content-type': 'application/json' }
+        headers: { 'content-type': 'application/json' },
       });
 
       await handler(req, res);
@@ -387,13 +397,13 @@ describe('Prompt Rating Integration', () => {
         method: 'POST',
         query: { id: 'invalid' },
         body: { rating: 5 },
-        headers: { 'content-type': 'application/json' }
+        headers: { 'content-type': 'application/json' },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(400);
-      
+
       const data = JSON.parse(res._getData());
       expect(data.error).toMatch(/invalid.*id/i);
     });

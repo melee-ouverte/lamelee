@@ -1,13 +1,13 @@
 /**
  * T067: Error Handling Middleware
- * 
+ *
  * Comprehensive error handling middleware for API routes with
  * proper error classification, logging, and user-friendly responses.
  */
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { Prisma } from '@prisma/client';
-import { 
+import { PrismaClient } from '@prisma/client';
+import {
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
   PrismaClientRustPanicError,
@@ -40,8 +40,11 @@ export interface ErrorResponse {
 export class ValidationError extends Error {
   public statusCode = 400;
   public code = 'VALIDATION_ERROR';
-  
-  constructor(message: string, public details?: any) {
+
+  constructor(
+    message: string,
+    public details?: any
+  ) {
     super(message);
     this.name = 'ValidationError';
   }
@@ -50,7 +53,7 @@ export class ValidationError extends Error {
 export class AuthenticationError extends Error {
   public statusCode = 401;
   public code = 'AUTHENTICATION_ERROR';
-  
+
   constructor(message: string = 'Authentication required') {
     super(message);
     this.name = 'AuthenticationError';
@@ -60,7 +63,7 @@ export class AuthenticationError extends Error {
 export class AuthorizationError extends Error {
   public statusCode = 403;
   public code = 'AUTHORIZATION_ERROR';
-  
+
   constructor(message: string = 'Insufficient permissions') {
     super(message);
     this.name = 'AuthorizationError';
@@ -70,7 +73,7 @@ export class AuthorizationError extends Error {
 export class NotFoundError extends Error {
   public statusCode = 404;
   public code = 'NOT_FOUND';
-  
+
   constructor(message: string = 'Resource not found') {
     super(message);
     this.name = 'NotFoundError';
@@ -80,8 +83,11 @@ export class NotFoundError extends Error {
 export class ConflictError extends Error {
   public statusCode = 409;
   public code = 'CONFLICT';
-  
-  constructor(message: string, public details?: any) {
+
+  constructor(
+    message: string,
+    public details?: any
+  ) {
     super(message);
     this.name = 'ConflictError';
   }
@@ -90,7 +96,7 @@ export class ConflictError extends Error {
 export class RateLimitError extends Error {
   public statusCode = 429;
   public code = 'RATE_LIMIT_EXCEEDED';
-  
+
   constructor(message: string = 'Rate limit exceeded') {
     super(message);
     this.name = 'RateLimitError';
@@ -100,8 +106,11 @@ export class RateLimitError extends Error {
 export class InternalServerError extends Error {
   public statusCode = 500;
   public code = 'INTERNAL_SERVER_ERROR';
-  
-  constructor(message: string = 'Internal server error', public details?: any) {
+
+  constructor(
+    message: string = 'Internal server error',
+    public details?: any
+  ) {
     super(message);
     this.name = 'InternalServerError';
   }
@@ -112,13 +121,15 @@ export class InternalServerError extends Error {
  */
 function normalizeError(error: any): ApiError {
   // Handle our custom error classes
-  if (error instanceof ValidationError ||
-      error instanceof AuthenticationError ||
-      error instanceof AuthorizationError ||
-      error instanceof NotFoundError ||
-      error instanceof ConflictError ||
-      error instanceof RateLimitError ||
-      error instanceof InternalServerError) {
+  if (
+    error instanceof ValidationError ||
+    error instanceof AuthenticationError ||
+    error instanceof AuthorizationError ||
+    error instanceof NotFoundError ||
+    error instanceof ConflictError ||
+    error instanceof RateLimitError ||
+    error instanceof InternalServerError
+  ) {
     return {
       code: error.code,
       message: error.message,
@@ -137,14 +148,16 @@ function normalizeError(error: any): ApiError {
           message: 'A record with this information already exists',
           statusCode: 409,
           details: { field: error.meta?.target },
-          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+          stack:
+            process.env.NODE_ENV === 'development' ? error.stack : undefined,
         };
       case 'P2025':
         return {
           code: 'RECORD_NOT_FOUND',
           message: 'The requested record was not found',
           statusCode: 404,
-          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+          stack:
+            process.env.NODE_ENV === 'development' ? error.stack : undefined,
         };
       case 'P2003':
         return {
@@ -152,15 +165,20 @@ function normalizeError(error: any): ApiError {
           message: 'This operation would violate a data relationship',
           statusCode: 400,
           details: { field: error.meta?.field_name },
-          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+          stack:
+            process.env.NODE_ENV === 'development' ? error.stack : undefined,
         };
       default:
         return {
           code: 'DATABASE_ERROR',
           message: 'A database error occurred',
           statusCode: 500,
-          details: process.env.NODE_ENV === 'development' ? { prismaCode: error.code } : undefined,
-          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+          details:
+            process.env.NODE_ENV === 'development'
+              ? { prismaCode: error.code }
+              : undefined,
+          stack:
+            process.env.NODE_ENV === 'development' ? error.stack : undefined,
         };
     }
   }
@@ -234,7 +252,10 @@ function normalizeError(error: any): ApiError {
 
     return {
       code: 'INTERNAL_SERVER_ERROR',
-      message: process.env.NODE_ENV === 'development' ? error.message : 'An internal error occurred',
+      message:
+        process.env.NODE_ENV === 'development'
+          ? error.message
+          : 'An internal error occurred',
       statusCode: 500,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     };
@@ -252,7 +273,10 @@ function normalizeError(error: any): ApiError {
 /**
  * Create standardized error response
  */
-function createErrorResponse(apiError: ApiError, requestId?: string): ErrorResponse {
+function createErrorResponse(
+  apiError: ApiError,
+  requestId?: string
+): ErrorResponse {
   return {
     success: false,
     error: {
@@ -269,18 +293,22 @@ function createErrorResponse(apiError: ApiError, requestId?: string): ErrorRespo
  * Log error with appropriate level
  */
 function logError(error: ApiError, req: NextApiRequest, requestId?: string) {
-  const logLevel = error.statusCode >= 500 ? 'ERROR' : error.statusCode >= 400 ? 'WARN' : 'INFO';
+  const logLevel =
+    error.statusCode >= 500
+      ? 'ERROR'
+      : error.statusCode >= 400
+        ? 'WARN'
+        : 'INFO';
   const prefix = requestId ? `[${requestId}]` : '';
-  
-  console[logLevel === 'ERROR' ? 'error' : logLevel === 'WARN' ? 'warn' : 'log'](
-    `${prefix} ${error.code} ${error.statusCode}: ${error.message}`,
-    {
-      url: req.url,
-      method: req.method,
-      details: error.details,
-      stack: error.stack,
-    }
-  );
+
+  console[
+    logLevel === 'ERROR' ? 'error' : logLevel === 'WARN' ? 'warn' : 'log'
+  ](`${prefix} ${error.code} ${error.statusCode}: ${error.message}`, {
+    url: req.url,
+    method: req.method,
+    details: error.details,
+    stack: error.stack,
+  });
 }
 
 /**
@@ -292,10 +320,12 @@ export function withErrorHandling(
   return async (req: NextApiRequest, res: NextApiResponse) => {
     try {
       await handler(req, res);
-      
+
       // If response hasn't been sent and no status code is set, something went wrong
       if (!res.headersSent && !res.statusCode) {
-        throw new InternalServerError('Handler completed without sending response');
+        throw new InternalServerError(
+          'Handler completed without sending response'
+        );
       }
     } catch (error) {
       // Don't handle errors if response was already sent
@@ -306,10 +336,10 @@ export function withErrorHandling(
 
       const apiError = normalizeError(error);
       const requestId = res.getHeader('X-Request-ID') as string;
-      
+
       // Log the error
       logError(apiError, req, requestId);
-      
+
       // Send error response
       const errorResponse = createErrorResponse(apiError, requestId);
       res.status(apiError.statusCode).json(errorResponse);
@@ -336,13 +366,17 @@ export const validate = {
 
   minLength: (value: string, minLength: number, fieldName: string) => {
     if (value.length < minLength) {
-      throw new ValidationError(`${fieldName} must be at least ${minLength} characters long`);
+      throw new ValidationError(
+        `${fieldName} must be at least ${minLength} characters long`
+      );
     }
   },
 
   maxLength: (value: string, maxLength: number, fieldName: string) => {
     if (value.length > maxLength) {
-      throw new ValidationError(`${fieldName} must be no more than ${maxLength} characters long`);
+      throw new ValidationError(
+        `${fieldName} must be no more than ${maxLength} characters long`
+      );
     }
   },
 
@@ -373,7 +407,9 @@ export const validate = {
 
   enum: (value: any, allowedValues: any[], fieldName: string) => {
     if (!allowedValues.includes(value)) {
-      throw new ValidationError(`${fieldName} must be one of: ${allowedValues.join(', ')}`);
+      throw new ValidationError(
+        `${fieldName} must be one of: ${allowedValues.join(', ')}`
+      );
     }
   },
 };

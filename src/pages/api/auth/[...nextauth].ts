@@ -1,6 +1,6 @@
 /**
  * NextAuth.js API Route
- * 
+ *
  * This dynamic API route handles all authentication requests
  * including sign in, sign out, callbacks, and session management.
  */

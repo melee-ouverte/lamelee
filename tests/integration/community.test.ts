@@ -1,9 +1,9 @@
 /**
  * Integration Test: Community Interaction (Comments, Reactions)
- * 
+ *
  * This test validates the complete community interaction functionality.
  * Based on User Journey Validation from quickstart.md
- * 
+ *
  * Test Status: RED (Must fail before implementation)
  * Related Task: T019
  * Implementation Tasks: T038 (comments), T039 (reactions)
@@ -23,7 +23,7 @@ describe('Community Interaction Integration', () => {
     id: '1',
     githubId: 12345,
     username: 'testuser',
-    email: 'test@example.com'
+    email: 'test@example.com',
   };
 
   beforeEach(() => {
@@ -34,7 +34,8 @@ describe('Community Interaction Integration', () => {
   describe('Comments Integration', () => {
     it('should add comment to experience', async () => {
       const commentData = {
-        content: 'This prompt worked great for my project too! Thanks for sharing.'
+        content:
+          'This prompt worked great for my project too! Thanks for sharing.',
       };
 
       const createdComment = {
@@ -43,7 +44,7 @@ describe('Community Interaction Integration', () => {
         experienceId: 1,
         content: commentData.content,
         createdAt: new Date(),
-        user: { username: mockUser.username, avatarUrl: 'avatar.png' }
+        user: { username: mockUser.username, avatarUrl: 'avatar.png' },
       };
 
       (prisma.comment.create as jest.Mock).mockResolvedValue(createdComment);
@@ -52,7 +53,7 @@ describe('Community Interaction Integration', () => {
         method: 'POST',
         query: { id: '1' },
         body: commentData,
-        headers: { 'content-type': 'application/json' }
+        headers: { 'content-type': 'application/json' },
       });
 
       await commentsHandler(req, res);
@@ -70,7 +71,7 @@ describe('Community Interaction Integration', () => {
         method: 'POST',
         query: { id: '1' },
         body: longComment,
-        headers: { 'content-type': 'application/json' }
+        headers: { 'content-type': 'application/json' },
       });
 
       await commentsHandler(req, res);
@@ -90,7 +91,7 @@ describe('Community Interaction Integration', () => {
         userId: parseInt(mockUser.id),
         experienceId: 1,
         reactionType: 'helpful',
-        createdAt: new Date()
+        createdAt: new Date(),
       };
 
       (prisma.reaction.upsert as jest.Mock).mockResolvedValue(createdReaction);
@@ -99,7 +100,7 @@ describe('Community Interaction Integration', () => {
         method: 'POST',
         query: { id: '1' },
         body: reactionData,
-        headers: { 'content-type': 'application/json' }
+        headers: { 'content-type': 'application/json' },
       });
 
       await reactionsHandler(req, res);
@@ -117,14 +118,14 @@ describe('Community Interaction Integration', () => {
         id: 1,
         userId: parseInt(mockUser.id),
         experienceId: 1,
-        reactionType: 'like'
+        reactionType: 'like',
       });
 
       const { req, res } = createMocks({
         method: 'POST',
         query: { id: '1' },
         body: reactionData,
-        headers: { 'content-type': 'application/json' }
+        headers: { 'content-type': 'application/json' },
       });
 
       await reactionsHandler(req, res);

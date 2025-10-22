@@ -1,7 +1,7 @@
-import { NextAuthOptions } from "next-auth";
-import GithubProvider from "next-auth/providers/github";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { prisma } from "./db";
+import { NextAuthOptions } from 'next-auth';
+import GithubProvider from 'next-auth/providers/github';
+import { PrismaAdapter } from '@next-auth/prisma-adapter';
+import { prisma } from './db';
 
 /**
  * NextAuth.js Configuration
@@ -49,7 +49,7 @@ export const authOptions: NextAuthOptions = {
   // Configure session strategy
   session: {
     // Use JWT for stateless sessions (better for serverless environments)
-    strategy: "jwt",
+    strategy: 'jwt',
 
     // Session expiration time (30 days)
     maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -57,8 +57,8 @@ export const authOptions: NextAuthOptions = {
 
   // Custom pages
   pages: {
-    signIn: "/login",
-    error: "/auth/error",
+    signIn: '/login',
+    error: '/auth/error',
   },
 
   // Callbacks for customizing authentication flow
@@ -132,7 +132,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   // Additional NextAuth configuration
-  debug: process.env.NODE_ENV === "development",
+  debug: process.env.NODE_ENV === 'development',
 
   // Secret for signing tokens (required in production)
   secret: process.env.NEXTAUTH_SECRET,
@@ -144,7 +144,7 @@ export const authOptions: NextAuthOptions = {
  * This extends the default NextAuth types to include our custom fields.
  * Import this module in your TypeScript configuration to get proper type checking.
  */
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session {
     user: {
       id: string;
@@ -166,7 +166,7 @@ declare module "next-auth" {
   }
 }
 
-declare module "next-auth/jwt" {
+declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
     githubId: number;

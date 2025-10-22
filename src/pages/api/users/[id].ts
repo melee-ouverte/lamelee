@@ -1,13 +1,16 @@
 /**
  * T037: /api/users/[id] - User Profile by ID
- * 
+ *
  * Handles GET requests to view public user profiles and statistics.
  */
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/db';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     const { id } = req.query;
     const userId = parseInt(id as string);
@@ -33,7 +36,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 /**
  * GET /api/users/[id] - Get user profile with public statistics
  */
-async function handleGetUser(req: NextApiRequest, res: NextApiResponse, userId: number) {
+async function handleGetUser(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  userId: number
+) {
   try {
     const user = await prisma.user.findFirst({
       where: {
@@ -108,10 +115,14 @@ async function handleGetUser(req: NextApiRequest, res: NextApiResponse, userId: 
 
     // Calculate average rating received on user's content
     const userExperiences = user.experiences;
-    const totalExperienceRating = userExperiences.reduce((sum: number, exp: any) => sum + exp.averageRating, 0);
-    const averageRatingReceived = userExperiences.length > 0 
-      ? totalExperienceRating / userExperiences.length 
-      : 0;
+    const totalExperienceRating = userExperiences.reduce(
+      (sum: number, exp: any) => sum + exp.averageRating,
+      0
+    );
+    const averageRatingReceived =
+      userExperiences.length > 0
+        ? totalExperienceRating / userExperiences.length
+        : 0;
 
     // Get AI assistant distribution
     const aiAssistantCounts = userExperiences.reduce((acc: any, exp: any) => {
@@ -121,16 +132,16 @@ async function handleGetUser(req: NextApiRequest, res: NextApiResponse, userId: 
 
     // Get most used tags
     const allTags = userExperiences
-      .map((exp: any) => exp.tags ? exp.tags.split(',').filter(Boolean) : [])
+      .map((exp: any) => (exp.tags ? exp.tags.split(',').filter(Boolean) : []))
       .flat();
-    
+
     const tagCounts = allTags.reduce((acc: any, tag: any) => {
       acc[tag] = (acc[tag] || 0) + 1;
       return acc;
     }, {});
 
     const topTags = Object.entries(tagCounts)
-      .sort(([,a]: any, [,b]: any) => b - a)
+      .sort(([, a]: any, [, b]: any) => b - a)
       .slice(0, 10)
       .map(([tag, count]) => ({ tag, count }));
 
@@ -157,9 +168,10 @@ async function handleGetUser(req: NextApiRequest, res: NextApiResponse, userId: 
       experiences: user.experiences.map((exp: any) => ({
         id: exp.id,
         title: exp.title,
-        description: exp.description.length > 200 
-          ? exp.description.substring(0, 200) + '...' 
-          : exp.description,
+        description:
+          exp.description.length > 200
+            ? exp.description.substring(0, 200) + '...'
+            : exp.description,
         githubUrl: exp.githubUrl,
         aiAssistant: exp.aiAssistant,
         tags: exp.tags ? exp.tags.split(',').filter(Boolean) : [],
@@ -174,7 +186,6 @@ async function handleGetUser(req: NextApiRequest, res: NextApiResponse, userId: 
     };
 
     res.status(200).json({ user: formattedUser });
-
   } catch (error) {
     console.error('Error fetching user:', error);
     res.status(500).json({ error: 'Failed to fetch user profile' });

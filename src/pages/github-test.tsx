@@ -1,6 +1,6 @@
 /**
  * T064-T065: GitHub Integration Testing Page
- * 
+ *
  * Test page for GitHub OAuth and URL preview functionality
  */
 

@@ -1,6 +1,6 @@
 /**
  * T063: Soft Delete Query Filters
- * 
+ *
  * Utility functions to automatically exclude soft-deleted records from queries
  * and provide consistent filtering across all API endpoints.
  */
@@ -49,7 +49,7 @@ export const withSoftDeleteFilter = {
         ...excludeDeleted,
       },
     }),
-    
+
     findUnique: (args: any) => ({
       ...args,
       where: {
@@ -57,7 +57,7 @@ export const withSoftDeleteFilter = {
         ...excludeDeleted,
       },
     }),
-    
+
     findFirst: (args: any = {}) => ({
       ...args,
       where: {
@@ -80,7 +80,7 @@ export const withSoftDeleteFilter = {
         user: excludeDeleted,
       },
     }),
-    
+
     findUnique: (args: any) => ({
       ...args,
       where: {
@@ -90,7 +90,7 @@ export const withSoftDeleteFilter = {
         user: excludeDeleted,
       },
     }),
-    
+
     findFirst: (args: any = {}) => ({
       ...args,
       where: {
@@ -154,21 +154,29 @@ export const getSoftDeleteInfo = (record: { deletedAt?: Date | null }) => {
   if (!isSoftDeleted(record)) {
     return { isDeleted: false };
   }
-  
+
   return {
     isDeleted: true,
     deletedAt: record.deletedAt,
-    daysDeleted: record.deletedAt ? 
-      Math.floor((Date.now() - record.deletedAt.getTime()) / (1000 * 60 * 60 * 24)) : 0,
+    daysDeleted: record.deletedAt
+      ? Math.floor(
+          (Date.now() - record.deletedAt.getTime()) / (1000 * 60 * 60 * 24)
+        )
+      : 0,
   };
 };
 
 /**
  * Validate that a record is not soft deleted, throwing an error if it is
  */
-export const validateNotDeleted = (record: { deletedAt?: Date | null }, resourceType: string = 'Resource') => {
+export const validateNotDeleted = (
+  record: { deletedAt?: Date | null },
+  resourceType: string = 'Resource'
+) => {
   if (isSoftDeleted(record)) {
-    throw new Error(`${resourceType} has been deleted and is no longer available`);
+    throw new Error(
+      `${resourceType} has been deleted and is no longer available`
+    );
   }
 };
 

@@ -1,9 +1,9 @@
 /**
  * Integration Test: User Authentication via GitHub SSO
- * 
+ *
  * This test validates the complete GitHub OAuth authentication flow.
  * Based on User Journey Validation from quickstart.md
- * 
+ *
  * Test Status: RED (Must fail before implementation)
  * Related Task: T016
  * Implementation Tasks: T031 (NextAuth API route), T004 (auth config)
@@ -23,7 +23,7 @@ describe('GitHub SSO Authentication Integration', () => {
     login: 'testuser',
     email: 'test@example.com',
     avatar_url: 'https://github.com/testuser.png',
-    bio: 'Test user bio'
+    bio: 'Test user bio',
   };
 
   beforeEach(() => {
@@ -38,7 +38,7 @@ describe('GitHub SSO Authentication Integration', () => {
       // This would typically test the actual redirect flow
       // In a real integration test, we'd use browser automation
       const session = await getServerSession(authOptions);
-      
+
       expect(session).toBeNull();
       // In real implementation, this would trigger redirect to GitHub
     });
@@ -52,12 +52,12 @@ describe('GitHub SSO Authentication Integration', () => {
         avatarUrl: mockGitHubUser.avatar_url,
         bio: mockGitHubUser.bio,
         createdAt: new Date(),
-        lastLogin: new Date()
+        lastLogin: new Date(),
       };
 
       // Mock successful authentication
       (getServerSession as jest.Mock).mockResolvedValue({
-        user: mockUser
+        user: mockUser,
       });
 
       // Mock database user creation
@@ -81,17 +81,17 @@ describe('GitHub SSO Authentication Integration', () => {
         avatarUrl: mockGitHubUser.avatar_url,
         bio: mockGitHubUser.bio,
         createdAt: new Date('2023-01-01'),
-        lastLogin: new Date('2023-12-01')
+        lastLogin: new Date('2023-12-01'),
       };
 
       const updatedUser = {
         ...existingUser,
-        lastLogin: new Date()
+        lastLogin: new Date(),
       };
 
       // Mock existing user authentication
       (getServerSession as jest.Mock).mockResolvedValue({
-        user: updatedUser
+        user: updatedUser,
       });
 
       // Mock database operations
@@ -101,7 +101,7 @@ describe('GitHub SSO Authentication Integration', () => {
       const session = await getServerSession(authOptions);
 
       expect(session?.user).toBeDefined();
-      expect(session?.user.lastLogin).toBeInstanceOf(Date);
+      expect((session?.user as any)?.lastLogin).toBeInstanceOf(Date);
     });
   });
 
@@ -114,9 +114,9 @@ describe('GitHub SSO Authentication Integration', () => {
           username: 'testuser',
           email: 'test@example.com',
           avatarUrl: 'https://github.com/testuser.png',
-          bio: 'Test user bio'
+          bio: 'Test user bio',
         },
-        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       };
 
       (getServerSession as jest.Mock).mockResolvedValue(mockSession);
@@ -133,7 +133,7 @@ describe('GitHub SSO Authentication Integration', () => {
     it('should handle session expiration', async () => {
       const expiredSession = {
         user: { id: '1', username: 'testuser' },
-        expires: new Date(Date.now() - 1000).toISOString() // Expired
+        expires: new Date(Date.now() - 1000).toISOString(), // Expired
       };
 
       (getServerSession as jest.Mock).mockResolvedValue(null);
@@ -151,8 +151,8 @@ describe('GitHub SSO Authentication Integration', () => {
           id: '1',
           githubId: 12345,
           username: 'testuser',
-          email: 'test@example.com'
-        }
+          email: 'test@example.com',
+        },
       };
 
       (getServerSession as jest.Mock).mockResolvedValue(mockSession);
@@ -177,18 +177,24 @@ describe('GitHub SSO Authentication Integration', () => {
   describe('Error Handling', () => {
     it('should handle GitHub OAuth errors gracefully', async () => {
       // Mock OAuth error
-      (getServerSession as jest.Mock).mockRejectedValue(new Error('OAuth error'));
+      (getServerSession as jest.Mock).mockRejectedValue(
+        new Error('OAuth error')
+      );
 
-      await expect(getServerSession(authOptions)).rejects.toThrow('OAuth error');
+      await expect(getServerSession(authOptions)).rejects.toThrow(
+        'OAuth error'
+      );
     });
 
     it('should handle database connection errors during auth', async () => {
       (getServerSession as jest.Mock).mockResolvedValue({
-        user: { id: '1', username: 'testuser' }
+        user: { id: '1', username: 'testuser' },
       });
 
       // Mock database error
-      (prisma.user.update as jest.Mock).mockRejectedValue(new Error('Database error'));
+      (prisma.user.update as jest.Mock).mockRejectedValue(
+        new Error('Database error')
+      );
 
       // Should still return session even if lastLogin update fails
       const session = await getServerSession(authOptions);
@@ -201,7 +207,7 @@ describe('GitHub SSO Authentication Integration', () => {
       const updatedGitHubProfile = {
         ...mockGitHubUser,
         bio: 'Updated bio from GitHub',
-        avatar_url: 'https://github.com/testuser-new.png'
+        avatar_url: 'https://github.com/testuser-new.png',
       };
 
       const syncedUser = {
@@ -210,17 +216,19 @@ describe('GitHub SSO Authentication Integration', () => {
         username: updatedGitHubProfile.login,
         email: updatedGitHubProfile.email,
         avatarUrl: updatedGitHubProfile.avatar_url,
-        bio: updatedGitHubProfile.bio
+        bio: updatedGitHubProfile.bio,
       };
 
       (getServerSession as jest.Mock).mockResolvedValue({
-        user: syncedUser
+        user: syncedUser,
       });
 
       const session = await getServerSession(authOptions);
 
       expect(session?.user.bio).toBe('Updated bio from GitHub');
-      expect(session?.user.avatarUrl).toBe('https://github.com/testuser-new.png');
+      expect(session?.user.avatarUrl).toBe(
+        'https://github.com/testuser-new.png'
+      );
     });
   });
 });

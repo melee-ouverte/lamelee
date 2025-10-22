@@ -20,10 +20,14 @@ interface UserProfileProps {
   showStats?: boolean;
 }
 
-export default function UserProfile({ user, stats, showStats = true }: UserProfileProps) {
+export default function UserProfile({
+  user,
+  stats,
+  showStats = true,
+}: UserProfileProps) {
   const joinDate = new Date(user.createdAt).toLocaleDateString('en-US', {
     year: 'numeric',
-    month: 'long'
+    month: 'long',
   });
 
   return (
@@ -81,7 +85,9 @@ export default function UserProfile({ user, stats, showStats = true }: UserProfi
       {/* Statistics */}
       {showStats && stats && (
         <div className="border-t border-gray-200 pt-6">
-          <h4 className="text-sm font-medium text-gray-900 mb-4">Contributions</h4>
+          <h4 className="text-sm font-medium text-gray-900 mb-4">
+            Contributions
+          </h4>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {/* Experience Count */}
             <div className="text-center">

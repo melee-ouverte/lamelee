@@ -46,7 +46,11 @@ interface UserProfilePageProps {
   }>;
 }
 
-export default function UserProfilePage({ user, stats, experiences }: UserProfilePageProps) {
+export default function UserProfilePage({
+  user,
+  stats,
+  experiences,
+}: UserProfilePageProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -59,7 +63,13 @@ export default function UserProfilePage({ user, stats, experiences }: UserProfil
     <Layout>
       <Head>
         <title>{user.username} - AI Coding Assistant Experience Platform</title>
-        <meta name="description" content={user.bio || `${user.username}'s profile on AI Coding Assistant Experience Platform`} />
+        <meta
+          name="description"
+          content={
+            user.bio ||
+            `${user.username}'s profile on AI Coding Assistant Experience Platform`
+          }
+        />
       </Head>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -71,12 +81,14 @@ export default function UserProfilePage({ user, stats, experiences }: UserProfil
             {/* Quick Stats */}
             <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
               <h3 className="text-lg font-medium text-gray-900">Activity</h3>
-              
+
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Code className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">Experiences shared</span>
+                    <span className="text-sm text-gray-600">
+                      Experiences shared
+                    </span>
                   </div>
                   <span className="text-sm font-medium text-gray-900">
                     {stats.experienceCount}
@@ -86,7 +98,9 @@ export default function UserProfilePage({ user, stats, experiences }: UserProfil
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <span className="text-gray-500">💡</span>
-                    <span className="text-sm text-gray-600">Prompts created</span>
+                    <span className="text-sm text-gray-600">
+                      Prompts created
+                    </span>
                   </div>
                   <span className="text-sm font-medium text-gray-900">
                     {stats.promptCount}
@@ -96,7 +110,9 @@ export default function UserProfilePage({ user, stats, experiences }: UserProfil
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <span className="text-gray-500">👍</span>
-                    <span className="text-sm text-gray-600">Reactions received</span>
+                    <span className="text-sm text-gray-600">
+                      Reactions received
+                    </span>
                   </div>
                   <span className="text-sm font-medium text-gray-900">
                     {stats.totalReactions}
@@ -107,7 +123,9 @@ export default function UserProfilePage({ user, stats, experiences }: UserProfil
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <span className="text-gray-500">⭐</span>
-                      <span className="text-sm text-gray-600">Average rating</span>
+                      <span className="text-sm text-gray-600">
+                        Average rating
+                      </span>
                     </div>
                     <span className="text-sm font-medium text-gray-900">
                       {stats.averageRating.toFixed(1)}
@@ -159,8 +177,8 @@ export default function UserProfilePage({ user, stats, experiences }: UserProfil
               ) : (
                 <div className="grid gap-6">
                   {experiences.slice(0, 6).map((experience) => (
-                    <ExperienceCard 
-                      key={experience.id} 
+                    <ExperienceCard
+                      key={experience.id}
                       experience={{
                         id: parseInt(experience.id),
                         title: experience.title,
@@ -190,11 +208,16 @@ export default function UserProfilePage({ user, stats, experiences }: UserProfil
             {/* Recent Activity Timeline */}
             {experiences.length > 0 && (
               <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
-                <h3 className="text-lg font-medium text-gray-900">Recent Activity</h3>
-                
+                <h3 className="text-lg font-medium text-gray-900">
+                  Recent Activity
+                </h3>
+
                 <div className="space-y-4">
                   {experiences.slice(0, 3).map((experience) => (
-                    <div key={experience.id} className="flex items-start space-x-3">
+                    <div
+                      key={experience.id}
+                      className="flex items-start space-x-3"
+                    >
                       <div className="flex-shrink-0">
                         <div className="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
                       </div>
@@ -209,7 +232,11 @@ export default function UserProfilePage({ user, stats, experiences }: UserProfil
                           </Link>
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {formatDate(experience.createdAt)} • {experience._count.prompts} prompt{experience._count.prompts !== 1 ? 's' : ''} • {experience._count.reactions} reaction{experience._count.reactions !== 1 ? 's' : ''}
+                          {formatDate(experience.createdAt)} •{' '}
+                          {experience._count.prompts} prompt
+                          {experience._count.prompts !== 1 ? 's' : ''} •{' '}
+                          {experience._count.reactions} reaction
+                          {experience._count.reactions !== 1 ? 's' : ''}
                         </p>
                       </div>
                     </div>
@@ -263,7 +290,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     // Fetch user's experiences
     const experiences = await prisma.experience.findMany({
-      where: { 
+      where: {
         userId: parseInt(id),
         deletedAt: null,
       },
@@ -316,9 +343,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     });
 
-    const averageRating = ratings.length > 0 
-      ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / ratings.length 
-      : undefined;
+    const averageRating =
+      ratings.length > 0
+        ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) /
+          ratings.length
+        : undefined;
 
     const stats = {
       experienceCount: experiences.length,

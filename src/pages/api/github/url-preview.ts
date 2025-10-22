@@ -1,13 +1,15 @@
 /**
  * T065: URL Preview API
- * 
+ *
  * API endpoint for generating URL previews, especially for GitHub URLs.
  */
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../lib/auth';
-import URLPreviewService, { URLPreviewUtils } from '../../../lib/url-preview-service';
+import URLPreviewService, {
+  URLPreviewUtils,
+} from '../../../lib/url-preview-service';
 
 interface PreviewRequest {
   url: string;
@@ -27,9 +29,9 @@ export default async function handler(
 ) {
   // Allow both GET and POST requests
   if (!['GET', 'POST'].includes(req.method || '')) {
-    return res.status(405).json({ 
-      success: false, 
-      error: `Method ${req.method} not allowed` 
+    return res.status(405).json({
+      success: false,
+      error: `Method ${req.method} not allowed`,
     });
   }
 
@@ -37,9 +39,9 @@ export default async function handler(
     // Check authentication
     const session = await getServerSession(req, res, authOptions);
     if (!session?.user) {
-      return res.status(401).json({ 
-        success: false, 
-        error: 'Authentication required' 
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required',
       });
     }
 
@@ -48,9 +50,9 @@ export default async function handler(
     const { url, includeMetadata = true } = data;
 
     if (!url || typeof url !== 'string') {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'URL parameter is required' 
+      return res.status(400).json({
+        success: false,
+        error: 'URL parameter is required',
       });
     }
 
@@ -58,9 +60,9 @@ export default async function handler(
     try {
       new URL(url.startsWith('http') ? url : `https://${url}`);
     } catch {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Invalid URL format' 
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid URL format',
       });
     }
 
@@ -101,7 +103,6 @@ export default async function handler(
       data: preview,
       message: `Generated ${preview.type} preview successfully`,
     });
-
   } catch (error) {
     console.error('URL preview API error:', error);
     return res.status(500).json({
@@ -131,15 +132,15 @@ export const URLPreviewCache = {
       preview,
       timestamp: Date.now(),
     });
-    
+
     // Clean old entries periodically
     if (previewCache.size > 1000) {
       const cutoff = Date.now() - CACHE_TTL;
       const entriesToDelete = Array.from(previewCache.entries())
         .filter(([_, value]) => value.timestamp < cutoff)
         .map(([key, _]) => key);
-      
-      entriesToDelete.forEach(key => previewCache.delete(key));
+
+      entriesToDelete.forEach((key) => previewCache.delete(key));
     }
   },
 

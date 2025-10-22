@@ -1,6 +1,6 @@
 /**
  * T064: GitHub OAuth Integration Testing Service
- * 
+ *
  * Provides utilities to test and validate GitHub OAuth integration,
  * including token validation, rate limit checking, and user data verification.
  */
@@ -51,10 +51,10 @@ export class GitHubOAuthTester {
     try {
       // Test token by fetching authenticated user
       const userResponse = await this.octokit.rest.users.getAuthenticated();
-      
+
       // Get rate limit information
       const rateLimitResponse = await this.octokit.rest.rateLimit.get();
-      
+
       return {
         isValid: true,
         user: userResponse.data,
@@ -63,7 +63,7 @@ export class GitHubOAuthTester {
       };
     } catch (error: any) {
       console.error('GitHub OAuth test failed:', error);
-      
+
       return {
         isValid: false,
         error: error.message || 'Unknown error occurred',
@@ -115,20 +115,25 @@ export class GitHubOAuthTester {
   private parseTokenScopes(headers: any): string[] {
     const scopeHeader = headers['x-oauth-scopes'];
     if (!scopeHeader) return [];
-    
-    return scopeHeader.split(',').map((scope: string) => scope.trim()).filter(Boolean);
+
+    return scopeHeader
+      .split(',')
+      .map((scope: string) => scope.trim())
+      .filter(Boolean);
   }
 
   /**
    * Validate required scopes for the application
    */
-  async validateRequiredScopes(requiredScopes: string[] = ['user', 'public_repo']): Promise<{
+  async validateRequiredScopes(
+    requiredScopes: string[] = ['user', 'public_repo']
+  ): Promise<{
     hasRequiredScopes: boolean;
     missingScopes: string[];
     currentScopes: string[];
   }> {
     const testResult = await this.testOAuthToken();
-    
+
     if (!testResult.isValid || !testResult.tokenScopes) {
       return {
         hasRequiredScopes: false,
@@ -138,7 +143,9 @@ export class GitHubOAuthTester {
     }
 
     const currentScopes = testResult.tokenScopes;
-    const missingScopes = requiredScopes.filter(scope => !currentScopes.includes(scope));
+    const missingScopes = requiredScopes.filter(
+      (scope) => !currentScopes.includes(scope)
+    );
 
     return {
       hasRequiredScopes: missingScopes.length === 0,
@@ -167,8 +174,10 @@ export const GitHubOAuthUtils = {
     // GitHub personal access tokens are typically 40 characters
     // GitHub App tokens start with 'ghs_' and are longer
     // OAuth tokens start with 'gho_' and are around 36 characters
-    return /^(gh[ps]_[a-zA-Z0-9]{36,40}|gho_[a-zA-Z0-9]{16})$/.test(token) || 
-           /^[a-f0-9]{40}$/.test(token); // Legacy format
+    return (
+      /^(gh[ps]_[a-zA-Z0-9]{36,40}|gho_[a-zA-Z0-9]{16})$/.test(token) ||
+      /^[a-f0-9]{40}$/.test(token)
+    ); // Legacy format
   },
 
   /**
@@ -177,7 +186,7 @@ export const GitHubOAuthUtils = {
   parseGitHubUrl(url: string): { owner: string; repo: string } | null {
     const match = url.match(/github\.com\/([^\/]+)\/([^\/]+)(?:\.git|\/)?$/);
     if (!match) return null;
-    
+
     return {
       owner: match[1],
       repo: match[2],
@@ -187,7 +196,11 @@ export const GitHubOAuthUtils = {
   /**
    * Generate OAuth URL for GitHub authentication
    */
-  generateOAuthUrl(clientId: string, redirectUri: string, scopes: string[] = ['user', 'public_repo']): string {
+  generateOAuthUrl(
+    clientId: string,
+    redirectUri: string,
+    scopes: string[] = ['user', 'public_repo']
+  ): string {
     const params = new URLSearchParams({
       client_id: clientId,
       redirect_uri: redirectUri,
