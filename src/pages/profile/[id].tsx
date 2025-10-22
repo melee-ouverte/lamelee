@@ -368,6 +368,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       ...experience,
       id: experience.id.toString(),
       createdAt: experience.createdAt.toISOString(),
+      updatedAt: experience.updatedAt.toISOString(), // Serialize Date object
+      aiAssistantType: experience.aiAssistant, // Map database field to frontend interface
+      githubUrls: experience.githubUrl ? [experience.githubUrl] : [], // Convert single URL to array
+      tags: experience.tags ? experience.tags.split(',').map((tag: string) => tag.trim()) : [], // Convert comma-separated string to array
       user: {
         ...experience.user,
         id: experience.user.id.toString(),
