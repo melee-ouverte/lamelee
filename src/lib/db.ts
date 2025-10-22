@@ -12,7 +12,7 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-// Connection configuration for optimal performance
+// Enhanced connection configuration for optimal performance and concurrency
 const connectionConfig = {
   log: process.env.NODE_ENV === "development" 
     ? ["query", "error", "warn", "info"] as const
@@ -21,10 +21,28 @@ const connectionConfig = {
   // Error formatting for better debugging
   errorFormat: "pretty" as const,
   
-  // Connection pool settings
+  // Connection pool settings for high concurrency
   datasources: {
     db: {
       url: process.env.DATABASE_URL,
+    },
+  },
+  
+  // Connection pool configuration
+  // Note: For SQLite, connection pooling is limited, but we configure for production readiness
+  __internal: {
+    engine: {
+      // Connection pool size (15+ for concurrent users)
+      connectionLimit: parseInt(process.env.DATABASE_CONNECTION_LIMIT || "20"),
+      
+      // Connection timeout (30 seconds)
+      connectTimeout: 30000,
+      
+      // Query timeout (10 seconds)
+      queryTimeout: 10000,
+      
+      // Pool timeout (30 seconds)
+      poolTimeout: 30000,
     },
   },
 };
@@ -78,7 +96,8 @@ export const dbUtils = {
   },
 
   /**
-   * Soft delete helper - marks record as deleted without removing it
+   * Simple soft delete helper - marks record as deleted without removing it
+   * For complex operations with cascading, use SoftDeleteService instead
    */
   async softDelete(model: keyof typeof prisma, id: number) {
     try {
@@ -88,7 +107,7 @@ export const dbUtils = {
         data: { deletedAt: new Date() },
       });
     } catch (error) {
-      console.error(`Soft delete failed for ${model} ${id}:`, error);
+      console.error(`Soft delete failed for ${String(model)} ${id}:`, error);
       throw error;
     }
   },
@@ -101,8 +120,34 @@ export const dbUtils = {
       // @ts-ignore - Dynamic model access
       return await prisma[model].deleteMany({ where });
     } catch (error) {
-      console.error(`Hard delete failed for ${model}:`, error);
+      console.error(`Hard delete failed for ${String(model)}:`, error);
       throw error;
+    }
+  },
+
+  /**
+   * Connection pool monitoring
+   */
+  async getConnectionInfo() {
+    try {
+      // For SQLite, we can't get actual pool info, but we can check connection health
+      const startTime = Date.now();
+      await prisma.$queryRaw`SELECT 1`;
+      const responseTime = Date.now() - startTime;
+
+      return {
+        healthy: true,
+        responseTime,
+        maxConnections: parseInt(process.env.DATABASE_CONNECTION_LIMIT || "20"),
+        database: process.env.DATABASE_URL?.includes('sqlite') ? 'SQLite' : 'Unknown',
+      };
+    } catch (error) {
+      console.error("Connection info check failed:", error);
+      return {
+        healthy: false,
+        responseTime: -1,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   },
 };

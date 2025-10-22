@@ -46,6 +46,7 @@ model User {
   @@index([username])
   @@index([createdAt])
   @@index([deletedAt]) // For cleanup queries
+  @@index([createdAt, deletedAt]) // Compound index for active user queries
 }
 
 // T025: Experience Model
@@ -82,6 +83,9 @@ model Experience {
   @@index([createdAt])
   @@index([deletedAt]) // For cleanup queries
   @@index([tags]) // For tag-based filtering (comma-separated string)
+  @@index([aiAssistant, createdAt]) // Compound index for filtered feeds
+  @@index([userId, createdAt]) // Compound index for user experiences
+  @@index([createdAt, deletedAt]) // Compound index for active experiences
 }
 
 // T026: Prompt Model
@@ -131,6 +135,7 @@ model Comment {
   @@index([experienceId])
   @@index([createdAt])
   @@index([deletedAt]) // For cleanup queries
+  @@index([experienceId, createdAt]) // Compound index for experience comments
 }
 
 // T028: Reaction Model

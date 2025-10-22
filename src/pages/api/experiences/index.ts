@@ -92,10 +92,16 @@ async function handleGetExperiences(req: NextApiRequest, res: NextApiResponse) {
         break;
     }
 
-    // Execute query with pagination
+    // Execute query with pagination, excluding soft-deleted records
     const [experiences, totalCount] = await Promise.all([
       prisma.experience.findMany({
-        where,
+        where: {
+          ...where,
+          deletedAt: null, // Exclude soft-deleted experiences
+          user: {
+            deletedAt: null, // Exclude experiences from soft-deleted users
+          },
+        },
         orderBy,
         skip: (page - 1) * limit,
         take: limit,
@@ -116,11 +122,19 @@ async function handleGetExperiences(req: NextApiRequest, res: NextApiResponse) {
           },
         },
       }),
-      prisma.experience.count({ where }),
+      prisma.experience.count({ 
+        where: {
+          ...where,
+          deletedAt: null,
+          user: {
+            deletedAt: null,
+          },
+        }
+      }),
     ]);
 
     // Format response
-    const formattedExperiences = experiences.map(exp => ({
+    const formattedExperiences = experiences.map((exp: any) => ({
       id: exp.id,
       title: exp.title,
       description: exp.description,
