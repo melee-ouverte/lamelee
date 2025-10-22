@@ -1,0 +1,1007 @@
+# T077: API Documentation Generation with Swagger UI
+# 
+# Comprehensive OpenAPI 3.0 specification for the AI Coding Assistant Experience Platform
+# with interactive Swagger UI documentation.
+
+openapi: 3.0.3
+info:
+  title: AI Coding Assistant Experience Platform API
+  description: |
+    Enterprise-grade REST API for sharing and discovering AI coding assistant experiences.
+    
+    ## Overview
+    
+    This API enables developers to:
+    - Share experiences with AI coding assistants (GitHub Copilot, Claude, ChatGPT, Cursor)
+    - Create and manage detailed prompts with context and results
+    - Interact with the community through comments, reactions, and ratings
+    - Search and filter experiences by various criteria
+    - Manage user profiles and statistics
+    
+    ## Authentication
+    
+    All API endpoints require authentication via NextAuth.js session cookies.
+    Sign in with GitHub OAuth at `/api/auth/signin`.
+    
+    ## Rate Limiting
+    
+    API requests are rate-limited to prevent abuse:
+    - 100 requests per minute for authenticated users
+    - 10 requests per minute for unauthenticated requests
+    
+    ## Error Handling
+    
+    The API uses standard HTTP status codes and returns consistent error responses:
+    
+    ```json
+    {
+      "error": {
+        "code": "VALIDATION_ERROR",
+        "message": "Invalid input data",
+        "details": {
+          "field": ["Field is required"]
+        }
+      }
+    }
+    ```
+    
+  version: 1.0.0
+  contact:
+    name: AI Coding Assistant Platform Team
+    email: support@example.com
+    url: https://github.com/your-org/ai-assistant-platform
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://ai-assistant-platform.vercel.app/api
+    description: Production server
+
+security:
+  - sessionAuth: []
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: next-auth.session-token
+      description: NextAuth.js session cookie
+  
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique user identifier
+          example: 1
+        githubId:
+          type: string
+          description: GitHub user ID
+          example: "12345678"
+        username:
+          type: string
+          description: GitHub username
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: "john@example.com"
+        avatarUrl:
+          type: string
+          format: uri
+          description: GitHub avatar URL
+          example: "https://avatars.githubusercontent.com/u/12345678"
+        bio:
+          type: string
+          nullable: true
+          description: User biography
+          example: "Full-stack developer passionate about AI tools"
+        createdAt:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+          example: "2024-01-15T10:30:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last profile update timestamp
+          example: "2024-01-20T14:45:00.000Z"
+      required:
+        - id
+        - githubId
+        - username
+        - email
+        - createdAt
+        - updatedAt
+
+    Experience:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique experience identifier
+          example: 1
+        title:
+          type: string
+          minLength: 5
+          maxLength: 100
+          description: Experience title
+          example: "Building a React Component with GitHub Copilot"
+        description:
+          type: string
+          minLength: 20
+          maxLength: 2000
+          description: Detailed experience description
+          example: "Used GitHub Copilot to generate a complex React component with TypeScript and proper error handling..."
+        githubUrl:
+          type: string
+          format: uri
+          pattern: "^https://github\\.com/.+/.+$"
+          description: GitHub repository URL
+          example: "https://github.com/johndoe/react-components"
+        aiAssistantType:
+          type: string
+          enum: [github-copilot, claude, gpt, cursor, other]
+          description: AI assistant used for this experience
+          example: "github-copilot"
+        tags:
+          type: string
+          description: Comma-separated tags
+          example: "react,typescript,frontend,components"
+        isNews:
+          type: boolean
+          description: Whether this is a news/announcement post
+          example: false
+        userId:
+          type: integer
+          description: ID of the user who created this experience
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2024-01-15T10:30:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-01-20T14:45:00.000Z"
+        user:
+          $ref: '#/components/schemas/User'
+        prompts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Prompt'
+        _count:
+          type: object
+          properties:
+            comments:
+              type: integer
+              example: 5
+            reactions:
+              type: integer
+              example: 12
+            prompts:
+              type: integer
+              example: 3
+      required:
+        - id
+        - title
+        - description
+        - githubUrl
+        - aiAssistantType
+        - userId
+        - createdAt
+        - updatedAt
+
+    Prompt:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique prompt identifier
+          example: 1
+        content:
+          type: string
+          minLength: 10
+          maxLength: 5000
+          description: The actual prompt text
+          example: "Create a TypeScript React component for a user profile card with props for name, avatar, and bio"
+        context:
+          type: string
+          maxLength: 1000
+          nullable: true
+          description: Context or background information
+          example: "Working on a user management system, needed a reusable profile component"
+        resultsAchieved:
+          type: string
+          nullable: true
+          description: Description of what was achieved with this prompt
+          example: "Generated a complete TypeScript component with proper typing and responsive design"
+        orderIndex:
+          type: integer
+          minimum: 0
+          description: Order of this prompt within the experience
+          example: 1
+        experienceId:
+          type: integer
+          description: ID of the parent experience
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2024-01-15T10:30:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-01-20T14:45:00.000Z"
+        ratings:
+          type: array
+          items:
+            $ref: '#/components/schemas/PromptRating'
+        averageRating:
+          type: number
+          format: float
+          nullable: true
+          description: Average rating for this prompt
+          example: 4.2
+      required:
+        - id
+        - content
+        - experienceId
+        - orderIndex
+        - createdAt
+        - updatedAt
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique comment identifier
+          example: 1
+        content:
+          type: string
+          minLength: 5
+          maxLength: 1000
+          description: Comment text
+          example: "Great approach! I used a similar technique with Claude and got excellent results."
+        userId:
+          type: integer
+          description: ID of the user who wrote this comment
+          example: 2
+        experienceId:
+          type: integer
+          description: ID of the experience this comment belongs to
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2024-01-15T10:30:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-01-20T14:45:00.000Z"
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+        - id
+        - content
+        - userId
+        - experienceId
+        - createdAt
+        - updatedAt
+
+    Reaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique reaction identifier
+          example: 1
+        reactionType:
+          type: string
+          enum: [HELPFUL, CREATIVE, EDUCATIONAL, INNOVATIVE, PROBLEMATIC]
+          description: Type of reaction
+          example: "HELPFUL"
+        userId:
+          type: integer
+          description: ID of the user who reacted
+          example: 2
+        experienceId:
+          type: integer
+          description: ID of the experience that was reacted to
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2024-01-15T10:30:00.000Z"
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+        - id
+        - reactionType
+        - userId
+        - experienceId
+        - createdAt
+
+    PromptRating:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique rating identifier
+          example: 1
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Rating from 1 to 5 stars
+          example: 4
+        userId:
+          type: integer
+          description: ID of the user who rated
+          example: 2
+        promptId:
+          type: integer
+          description: ID of the prompt that was rated
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2024-01-15T10:30:00.000Z"
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+        - id
+        - rating
+        - userId
+        - promptId
+        - createdAt
+
+    ExperienceInput:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 5
+          maxLength: 100
+          description: Experience title
+          example: "Building a React Component with GitHub Copilot"
+        description:
+          type: string
+          minLength: 20
+          maxLength: 2000
+          description: Detailed experience description
+          example: "Used GitHub Copilot to generate a complex React component..."
+        githubUrl:
+          type: string
+          format: uri
+          pattern: "^https://github\\.com/.+/.+$"
+          description: GitHub repository URL
+          example: "https://github.com/johndoe/react-components"
+        aiAssistantType:
+          type: string
+          enum: [github-copilot, claude, gpt, cursor, other]
+          description: AI assistant used
+          example: "github-copilot"
+        tags:
+          type: string
+          description: Comma-separated tags
+          example: "react,typescript,frontend"
+        prompts:
+          type: array
+          items:
+            type: object
+            properties:
+              content:
+                type: string
+                minLength: 10
+                maxLength: 5000
+                example: "Create a TypeScript React component..."
+              context:
+                type: string
+                maxLength: 1000
+                nullable: true
+                example: "Working on a user management system..."
+              resultsAchieved:
+                type: string
+                nullable: true
+                example: "Generated a complete TypeScript component..."
+            required:
+              - content
+      required:
+        - title
+        - description
+        - githubUrl
+        - aiAssistantType
+
+    PaginatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: {}
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+              description: Current page number
+              example: 1
+            limit:
+              type: integer
+              description: Items per page
+              example: 20
+            total:
+              type: integer
+              description: Total number of items
+              example: 150
+            totalPages:
+              type: integer
+              description: Total number of pages
+              example: 8
+            hasNextPage:
+              type: boolean
+              description: Whether there are more pages
+              example: true
+            hasPrevPage:
+              type: boolean
+              description: Whether there are previous pages
+              example: false
+          required:
+            - page
+            - limit
+            - total
+            - totalPages
+            - hasNextPage
+            - hasPrevPage
+      required:
+        - data
+        - pagination
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Error code
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              description: Human-readable error message
+              example: "Invalid input data"
+            details:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+              description: Field-specific validation errors
+              example:
+                title: ["Title is required"]
+                githubUrl: ["Must be a valid GitHub repository URL"]
+          required:
+            - code
+            - message
+      required:
+        - error
+
+paths:
+  /experiences:
+    get:
+      summary: List experiences
+      description: Retrieve a paginated list of experiences with optional filtering
+      tags:
+        - Experiences
+      parameters:
+        - name: page
+          in: query
+          description: Page number (1-based)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: aiAssistant
+          in: query
+          description: Filter by AI assistant type
+          schema:
+            type: string
+            enum: [github-copilot, claude, gpt, cursor, other]
+        - name: tags
+          in: query
+          description: Filter by tags (comma-separated)
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: Full-text search query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [recent, popular, rating]
+            default: recent
+      responses:
+        '200':
+          description: List of experiences retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Experience'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Create experience
+      description: Create a new AI coding assistant experience
+      tags:
+        - Experiences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperienceInput'
+      responses:
+        '201':
+          description: Experience created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experience'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /experiences/{id}:
+    get:
+      summary: Get experience
+      description: Retrieve a specific experience by ID with all related data
+      tags:
+        - Experiences
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Experience ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Experience retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experience'
+        '404':
+          description: Experience not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      summary: Update experience
+      description: Update an existing experience (owner only)
+      tags:
+        - Experiences
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Experience ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperienceInput'
+      responses:
+        '200':
+          description: Experience updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Experience'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Not authorized to update this experience
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Experience not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Delete experience
+      description: Delete an experience (owner only)
+      tags:
+        - Experiences
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Experience ID
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Experience deleted successfully
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Not authorized to delete this experience
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Experience not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /experiences/{id}/comments:
+    get:
+      summary: List comments
+      description: Retrieve comments for a specific experience
+      tags:
+        - Comments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Experience ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Comments retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '404':
+          description: Experience not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Add comment
+      description: Add a comment to an experience
+      tags:
+        - Comments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Experience ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  minLength: 5
+                  maxLength: 1000
+                  description: Comment text
+                  example: "Great approach! Very helpful tutorial."
+              required:
+                - content
+      responses:
+        '201':
+          description: Comment added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Experience not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /experiences/{id}/reactions:
+    post:
+      summary: Add reaction
+      description: Add or update a reaction to an experience
+      tags:
+        - Reactions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Experience ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reactionType:
+                  type: string
+                  enum: [HELPFUL, CREATIVE, EDUCATIONAL, INNOVATIVE, PROBLEMATIC]
+                  description: Type of reaction
+                  example: "HELPFUL"
+              required:
+                - reactionType
+      responses:
+        '201':
+          description: Reaction added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reaction'
+        '400':
+          description: Invalid reaction type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Experience not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /prompts/{id}/ratings:
+    post:
+      summary: Rate prompt
+      description: Add or update a rating for a prompt
+      tags:
+        - Ratings
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Prompt ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  description: Rating from 1 to 5 stars
+                  example: 4
+              required:
+                - rating
+      responses:
+        '201':
+          description: Rating added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromptRating'
+        '400':
+          description: Invalid rating value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Prompt not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/me:
+    get:
+      summary: Get current user
+      description: Retrieve the current authenticated user's profile
+      tags:
+        - Users
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/User'
+                  - type: object
+                    properties:
+                      stats:
+                        type: object
+                        properties:
+                          experienceCount:
+                            type: integer
+                            description: Number of experiences created
+                            example: 5
+                          totalPrompts:
+                            type: integer
+                            description: Total prompts across all experiences
+                            example: 15
+                          averageRating:
+                            type: number
+                            format: float
+                            nullable: true
+                            description: Average rating across all prompts
+                            example: 4.2
+                          totalReactions:
+                            type: integer
+                            description: Total reactions received
+                            example: 28
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/{id}:
+    get:
+      summary: Get user profile
+      description: Retrieve a specific user's public profile
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/User'
+                  - type: object
+                    properties:
+                      stats:
+                        type: object
+                        properties:
+                          experienceCount:
+                            type: integer
+                            example: 5
+                          totalPrompts:
+                            type: integer
+                            example: 15
+                          averageRating:
+                            type: number
+                            format: float
+                            nullable: true
+                            example: 4.2
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+tags:
+  - name: Experiences
+    description: AI coding assistant experiences management
+  - name: Comments
+    description: Community comments on experiences
+  - name: Reactions
+    description: User reactions to experiences
+  - name: Ratings
+    description: Prompt rating system
+  - name: Users
+    description: User profile management
