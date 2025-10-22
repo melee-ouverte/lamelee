@@ -156,6 +156,9 @@ export default function CreateExperience() {
 
       if (!response.ok) {
         const errorData = await response.json();
+        if (errorData.details && Array.isArray(errorData.details)) {
+          throw new Error(`${errorData.error}\n\nDetails:\n${errorData.details.join('\n')}`);
+        }
         throw new Error(errorData.error || 'Failed to create experience');
       }
 
@@ -245,20 +248,28 @@ export default function CreateExperience() {
                     htmlFor="title"
                     className="block text-sm font-medium text-gray-700 mb-2"
                   >
-                    Title *
+                    Title * <span className="text-xs text-gray-500">(minimum 5 characters)</span>
                   </label>
                   <input
                     type="text"
                     id="title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+                      title.length > 0 && title.length < 5 
+                        ? 'border-red-300 bg-red-50' 
+                        : 'border-gray-300'
+                    }`}
                     placeholder="e.g., Building a React component with GitHub Copilot"
                     maxLength={200}
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {title.length}/200 characters
+                  <p className={`text-xs mt-1 ${
+                    title.length > 0 && title.length < 5 
+                      ? 'text-red-600' 
+                      : 'text-gray-500'
+                  }`}>
+                    {title.length}/200 characters {title.length > 0 && title.length < 5 ? '(minimum 5 required)' : ''}
                   </p>
                 </div>
 
@@ -268,20 +279,28 @@ export default function CreateExperience() {
                     htmlFor="description"
                     className="block text-sm font-medium text-gray-700 mb-2"
                   >
-                    Description *
+                    Description * <span className="text-xs text-gray-500">(minimum 20 characters)</span>
                   </label>
                   <textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none"
+                    className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none ${
+                      description.length > 0 && description.length < 20 
+                        ? 'border-red-300 bg-red-50' 
+                        : 'border-gray-300'
+                    }`}
                     placeholder="Describe your experience, what you were trying to achieve, and how the AI assistant helped..."
-                    maxLength={1000}
+                    maxLength={2000}
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {description.length}/1000 characters
+                  <p className={`text-xs mt-1 ${
+                    description.length > 0 && description.length < 20 
+                      ? 'text-red-600' 
+                      : 'text-gray-500'
+                  }`}>
+                    {description.length}/2000 characters {description.length > 0 && description.length < 20 ? '(minimum 20 required)' : ''}
                   </p>
                 </div>
 
@@ -381,7 +400,7 @@ export default function CreateExperience() {
               {/* GitHub URLs */}
               <div className="space-y-4">
                 <h2 className="text-lg font-medium text-gray-900">
-                  GitHub Repositories
+                  GitHub Repositories * <span className="text-xs text-gray-500">(at least one required)</span>
                 </h2>
 
                 {githubUrls.map((url, index) => (
@@ -473,7 +492,7 @@ export default function CreateExperience() {
                     {/* Prompt Content */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Prompt *
+                        Prompt * <span className="text-xs text-gray-500">(minimum 10 characters)</span>
                       </label>
                       <textarea
                         value={prompt.content}
@@ -481,11 +500,22 @@ export default function CreateExperience() {
                           updatePrompt(prompt.id, 'content', e.target.value)
                         }
                         rows={4}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none font-mono"
+                        className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none font-mono ${
+                          prompt.content.length > 0 && prompt.content.length < 10 
+                            ? 'border-red-300 bg-red-50' 
+                            : 'border-gray-300'
+                        }`}
                         placeholder="Enter the exact prompt you used with the AI assistant..."
-                        maxLength={2000}
+                        maxLength={5000}
                         required
                       />
+                      <p className={`text-xs mt-1 ${
+                        prompt.content.length > 0 && prompt.content.length < 10 
+                          ? 'text-red-600' 
+                          : 'text-gray-500'
+                      }`}>
+                        {prompt.content.length}/5000 characters {prompt.content.length > 0 && prompt.content.length < 10 ? '(minimum 10 required)' : ''}
+                      </p>
                     </div>
 
                     {/* Results */}

@@ -290,7 +290,11 @@ export const experienceSchema = z.object({
     path: ['aiAssistant'],
   }
 ).refine(
-  (data) => data.githubUrl || (data.githubUrls && data.githubUrls.length > 0),
+  (data) => {
+    const hasGithubUrl = data.githubUrl && data.githubUrl.trim().length > 0;
+    const hasGithubUrls = data.githubUrls && data.githubUrls.length > 0 && data.githubUrls.some(url => url.trim().length > 0);
+    return hasGithubUrl || hasGithubUrls;
+  },
   {
     message: 'At least one GitHub URL is required',
     path: ['githubUrl'],
