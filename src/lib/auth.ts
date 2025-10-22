@@ -83,11 +83,11 @@ export const authOptions: NextAuthOptions = {
         token.bio = user.bio;
       }
 
-      // On sign in, update last login timestamp
+      // On sign in, update user's updatedAt timestamp
       if (account && user) {
         await prisma.user.update({
-          where: { id: user.id },
-          data: { lastLogin: new Date() },
+          where: { id: parseInt(user.id) },
+          data: { updatedAt: new Date() },
         });
       }
 
