@@ -326,6 +326,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       id: experience.id.toString(),
       createdAt: experience.createdAt.toISOString(),
       updatedAt: experience.updatedAt.toISOString(),
+      githubUrls: experience.githubUrl ? [experience.githubUrl] : [], // Convert single URL to array
+      tags: experience.tags ? experience.tags.split(',').filter(Boolean) : [], // Convert string to array
       user: {
         ...(experience as any).user,
         id: (experience as any).user.id.toString(),
@@ -336,6 +338,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         ...prompt,
         id: prompt.id.toString(),
         createdAt: prompt.createdAt.toISOString(),
+        updatedAt: prompt.updatedAt.toISOString(),
         ratings: prompt.ratings.map((rating: any) => ({
           ...rating,
           id: rating.id.toString(),
@@ -345,6 +348,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         ...comment,
         id: comment.id.toString(),
         createdAt: comment.createdAt.toISOString(),
+        updatedAt: comment.updatedAt.toISOString(),
         user: {
           ...comment.user,
           id: comment.user.id.toString(),
