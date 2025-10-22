@@ -38,24 +38,24 @@
 - Prisma schema and migrations in root
 
 ## Phase 3.1: Setup
-- [x] T001 Initialize Next.js 14 project with TypeScript and configure package.json dependencies
-- [x] T002 Configure Prisma with PostgreSQL connection and initialize schema file at prisma/schema.prisma
-- [x] T003 [P] Configure ESLint, Prettier, and TypeScript strict mode in tsconfig.json
-- [x] T004 Configure NextAuth.js with GitHub provider in src/lib/auth.ts
-- [x] T005 Create environment variables template (.env.example) with DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
+- [X] T001 Initialize Next.js 14 project with TypeScript and configure package.json dependencies
+- [X] T002 Configure Prisma with PostgreSQL connection and initialize schema file at prisma/schema.prisma
+- [X] T003 [P] Configure ESLint, Prettier, and TypeScript strict mode in tsconfig.json
+- [X] T004 Configure NextAuth.js with GitHub provider in src/lib/auth.ts
+- [X] T005 Create environment variables template (.env.example) with DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
-- [ ] T006 [P] Contract test GET /api/experiences in tests/contract/experiences-get.test.ts
-- [ ] T007 [P] Contract test POST /api/experiences in tests/contract/experiences-post.test.ts
-- [ ] T008 [P] Contract test GET /api/experiences/{id} in tests/contract/experiences-id-get.test.ts
-- [ ] T009 [P] Contract test PUT /api/experiences/{id} in tests/contract/experiences-id-put.test.ts
-- [ ] T010 [P] Contract test DELETE /api/experiences/{id} in tests/contract/experiences-id-delete.test.ts
-- [ ] T011 [P] Contract test POST /api/experiences/{id}/comments in tests/contract/comments-post.test.ts
-- [ ] T012 [P] Contract test POST /api/experiences/{id}/reactions in tests/contract/reactions-post.test.ts
-- [ ] T013 [P] Contract test POST /api/prompts/{id}/ratings in tests/contract/ratings-post.test.ts
-- [ ] T014 [P] Contract test GET /api/users/me in tests/contract/users-me.test.ts
-- [ ] T015 [P] Contract test GET /api/users/{id} in tests/contract/users-id.test.ts
+- [X] T006 [P] Contract test GET /api/experiences in tests/contract/experiences-get.test.ts
+- [X] T007 [P] Contract test POST /api/experiences in tests/contract/experiences-post.test.ts
+- [X] T008 [P] Contract test GET /api/experiences/{id} in tests/contract/experiences-id-get.test.ts
+- [X] T009 [P] Contract test PUT /api/experiences/{id} in tests/contract/experiences-id-put.test.ts
+- [X] T010 [P] Contract test DELETE /api/experiences/{id} in tests/contract/experiences-id-delete.test.ts
+- [X] T011 [P] Contract test POST /api/experiences/{id}/comments in tests/contract/comments-post.test.ts
+- [X] T012 [P] Contract test POST /api/experiences/{id}/reactions in tests/contract/reactions-post.test.ts
+- [X] T013 [P] Contract test POST /api/prompts/{id}/ratings in tests/contract/ratings-post.test.ts
+- [X] T014 [P] Contract test GET /api/users/me in tests/contract/users-me.test.ts
+- [X] T015 [P] Contract test GET /api/users/{id} in tests/contract/users-id.test.ts
 - [ ] T016 [P] Integration test: User authentication via GitHub SSO in tests/integration/auth.test.ts
 - [ ] T017 [P] Integration test: Create experience with prompt and GitHub URL in tests/integration/create-experience.test.ts
 - [ ] T018 [P] Integration test: Browse and filter feed by AI assistant type in tests/integration/feed-filter.test.ts
