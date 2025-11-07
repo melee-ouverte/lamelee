@@ -35,3 +35,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Playright
+/playwright-report/
+/playwright/.cache
+*.pw.log
+
+# test results
+/test-results/
+/test-results.*
+
+# Local database
+dev.db

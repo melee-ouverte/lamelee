@@ -1,0 +1,599 @@
+/**
+ * E2E User Journey Tests
+ * Based on Constitution Principle II: Test-Driven Development
+ * Automated from specs/002-ai-coding-assistant/quickstart.md
+ * 
+ * These tests validate complete user workflows from the quickstart guide
+ */
+
+import { test, expect } from '@playwright/test';
+
+// Test data setup
+const TEST_USER = {
+  githubUsername: 'testuser',
+  githubId: '12345678',
+  email: 'test@example.com',
+  avatarUrl: 'https://avatars.githubusercontent.com/u/12345678'
+};
+
+const TEST_EXPERIENCE = {
+  title: 'Using GitHub Copilot for React Components',
+  description: 'Copilot helped me create reusable components faster',
+  aiAssistant: 'github-copilot',
+  tags: ['react', 'components', 'productivity'],
+  githubUrl: 'https://github.com/testuser/testrepo/blob/main/Component.js',
+  prompt: {
+    content: 'Create a reusable Button component with TypeScript',
+    context: 'Building a design system',
+    results: 'Generated clean, typed component with props interface'
+  }
+};
+
+/**
+ * Test Scenario 1: User Authentication
+ * From quickstart.md: User Journey Validation
+ */
+test.describe('User Authentication Journey', () => {
+  test('should authenticate user via GitHub SSO', async ({ page, context }) => {
+    // 1. Navigate to homepage
+    await page.goto('/');
+    
+    // 2. Click "Login with GitHub"
+    const loginButton = page.locator('text=Login with GitHub');
+    await expect(loginButton).toBeVisible();
+    await loginButton.click();
+    
+    // 3. Mock GitHub OAuth (in real tests, this would go through GitHub)
+    // For E2E, we simulate successful auth by setting the session cookie
+    await context.addCookies([{
+      name: 'next-auth.session-token',
+      value: 'mock-session-token',
+      domain: 'localhost',
+      path: '/',
+      httpOnly: true,
+      secure: false,
+      sameSite: 'Lax'
+    }]);
+    
+    // 4. Verify user is redirected back and logged in
+    await page.reload();
+    await expect(page.locator('text=Profile')).toBeVisible();
+    
+    // 5. Check user profile displays GitHub information
+    await page.click('text=Profile');
+    await expect(page.locator(`text=${TEST_USER.githubUsername}`)).toBeVisible();
+    await expect(page.locator('img[alt*="avatar"]')).toBeVisible();
+  });
+
+  test('should require authentication for protected routes', async ({ page }) => {
+    // Try accessing /create without authentication
+    await page.goto('/create');
+    
+    // Should redirect to login
+    await expect(page).toHaveURL(/\/api\/auth\/signin/);
+  });
+
+  test('should allow logout', async ({ page, context }) => {
+    // Setup authenticated session
+    await context.addCookies([{
+      name: 'next-auth.session-token',
+      value: 'mock-session-token',
+      domain: 'localhost',
+      path: '/'
+    }]);
+    
+    await page.goto('/');
+    await page.click('text=Logout');
+    
+    // Verify logged out
+    await expect(page.locator('text=Login with GitHub')).toBeVisible();
+  });
+});
+
+/**
+ * Test Scenario 2: Create Experience with Prompt
+ * From quickstart.md: User Journey Validation
+ */
+test.describe('Create Experience Journey', () => {
+  test.beforeEach(async ({ context }) => {
+    // Setup authenticated session
+    await context.addCookies([{
+      name: 'next-auth.session-token',
+      value: 'mock-session-token',
+      domain: 'localhost',
+      path: '/'
+    }]);
+  });
+
+  test('should create experience with prompt successfully', async ({ page }) => {
+    // 1. Navigate to create page
+    await page.goto('/');
+    await page.click('text=Create Experience');
+    
+    // 2. Fill form
+    await page.fill('input[name="title"]', TEST_EXPERIENCE.title);
+    await page.fill('textarea[name="description"]', TEST_EXPERIENCE.description);
+    await page.selectOption('select[name="aiAssistant"]', TEST_EXPERIENCE.aiAssistant);
+    
+    // Fill tags
+    for (const tag of TEST_EXPERIENCE.tags) {
+      await page.fill('input[name="tags"]', tag);
+      await page.press('input[name="tags"]', 'Enter');
+    }
+    
+    await page.fill('input[name="githubUrl"]', TEST_EXPERIENCE.githubUrl);
+    
+    // 3. Add prompt
+    await page.click('text=Add Prompt');
+    await page.fill('textarea[name="prompt.content"]', TEST_EXPERIENCE.prompt.content);
+    await page.fill('textarea[name="prompt.context"]', TEST_EXPERIENCE.prompt.context);
+    await page.fill('textarea[name="prompt.results"]', TEST_EXPERIENCE.prompt.results);
+    
+    // 4. Submit experience
+    await page.click('button[type="submit"]');
+    
+    // 5. Verify redirect to experience detail
+    await expect(page).toHaveURL(/\/experiences\/\d+/);
+    
+    // 6. Verify experience content is displayed
+    await expect(page.locator(`text=${TEST_EXPERIENCE.title}`)).toBeVisible();
+    await expect(page.locator(`text=${TEST_EXPERIENCE.description}`)).toBeVisible();
+    await expect(page.locator(`text=${TEST_EXPERIENCE.prompt.content}`)).toBeVisible();
+  });
+
+  test('should validate required fields', async ({ page }) => {
+    await page.goto('/create');
+    
+    // Try to submit empty form
+    await page.click('button[type="submit"]');
+    
+    // Should show validation errors
+    await expect(page.locator('text=Title is required')).toBeVisible();
+    await expect(page.locator('text=Description is required')).toBeVisible();
+  });
+
+  test('should validate GitHub URL format', async ({ page }) => {
+    await page.goto('/create');
+    
+    // Fill valid fields
+    await page.fill('input[name="title"]', 'Test Experience');
+    await page.fill('textarea[name="description"]', 'Test Description');
+    
+    // Try invalid URL
+    await page.fill('input[name="githubUrl"]', 'https://gitlab.com/user/repo');
+    await page.click('button[type="submit"]');
+    
+    // Should show validation error
+    await expect(page.locator('text=Must be a valid GitHub URL')).toBeVisible();
+  });
+
+  test('should prevent XSS in user input', async ({ page }) => {
+    await page.goto('/create');
+    
+    const maliciousScript = '<script>alert("XSS")</script>';
+    
+    await page.fill('input[name="title"]', maliciousScript);
+    await page.fill('textarea[name="description"]', maliciousScript);
+    await page.fill('input[name="githubUrl"]', TEST_EXPERIENCE.githubUrl);
+    await page.selectOption('select[name="aiAssistant"]', 'github-copilot');
+    
+    await page.click('button[type="submit"]');
+    
+    // Navigate to experience detail
+    await expect(page).toHaveURL(/\/experiences\/\d+/);
+    
+    // Verify script is displayed as text, not executed
+    const titleElement = await page.locator('h1').textContent();
+    expect(titleElement).toContain('&lt;script&gt;');
+    expect(titleElement).not.toContain('<script>');
+  });
+});
+
+/**
+ * Test Scenario 3: Browse and Filter Feed
+ * From quickstart.md: User Journey Validation
+ */
+test.describe('Browse and Filter Feed Journey', () => {
+  test.beforeEach(async ({ context }) => {
+    await context.addCookies([{
+      name: 'next-auth.session-token',
+      value: 'mock-session-token',
+      domain: 'localhost',
+      path: '/'
+    }]);
+  });
+
+  test('should display feed with experiences', async ({ page }) => {
+    await page.goto('/feed');
+    
+    // Verify feed loads
+    await expect(page.locator('h1:has-text("Experiences")')).toBeVisible();
+    
+    // Verify experience cards are present
+    const experienceCards = page.locator('[data-testid="experience-card"]');
+    await expect(experienceCards).toHaveCount({ timeout: 5000 });
+  });
+
+  test('should filter by AI Assistant type', async ({ page }) => {
+    await page.goto('/feed');
+    
+    // Select filter
+    await page.selectOption('select[name="aiAssistant"]', 'github-copilot');
+    
+    // Verify URL updated with filter
+    await expect(page).toHaveURL(/aiAssistant=github-copilot/);
+    
+    // Verify only filtered experiences shown
+    const experiences = page.locator('[data-testid="experience-card"]');
+    const count = await experiences.count();
+    
+    for (let i = 0; i < count; i++) {
+      const aiAssistant = await experiences.nth(i).getAttribute('data-ai-assistant');
+      expect(aiAssistant).toBe('github-copilot');
+    }
+  });
+
+  test('should search for keywords', async ({ page }) => {
+    await page.goto('/feed');
+    
+    // Enter search term
+    await page.fill('input[name="search"]', 'react');
+    await page.click('button[type="submit"]');
+    
+    // Verify URL updated
+    await expect(page).toHaveURL(/search=react/);
+    
+    // Verify results contain keyword
+    const experienceCards = page.locator('[data-testid="experience-card"]');
+    const count = await experienceCards.count();
+    
+    for (let i = 0; i < count; i++) {
+      const text = await experienceCards.nth(i).textContent();
+      expect(text?.toLowerCase()).toContain('react');
+    }
+  });
+
+  test('should navigate to experience detail', async ({ page }) => {
+    await page.goto('/feed');
+    
+    // Click on first experience
+    const firstExperience = page.locator('[data-testid="experience-card"]').first();
+    await firstExperience.click();
+    
+    // Verify navigated to detail page
+    await expect(page).toHaveURL(/\/experiences\/\d+/);
+  });
+
+  test('should copy prompt from experience', async ({ page, context }) => {
+    // Grant clipboard permissions
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    
+    await page.goto('/experiences/1');
+    
+    // Click copy button
+    await page.click('[data-testid="copy-prompt"]');
+    
+    // Verify copied to clipboard
+    const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
+    expect(clipboardText).toBeTruthy();
+  });
+
+  test('should rate prompt effectiveness', async ({ page }) => {
+    await page.goto('/experiences/1');
+    
+    // Click on 5-star rating
+    await page.click('[data-testid="rating-5"]');
+    
+    // Verify rating submitted
+    await expect(page.locator('text=Rating submitted')).toBeVisible();
+    
+    // Verify rating persisted
+    await page.reload();
+    const selectedRating = page.locator('[data-testid="rating-5"][aria-checked="true"]');
+    await expect(selectedRating).toBeVisible();
+  });
+});
+
+/**
+ * Test Scenario 4: Community Interaction
+ * From quickstart.md: User Journey Validation
+ */
+test.describe('Community Interaction Journey', () => {
+  test.beforeEach(async ({ context }) => {
+    await context.addCookies([{
+      name: 'next-auth.session-token',
+      value: 'mock-session-token',
+      domain: 'localhost',
+      path: '/'
+    }]);
+  });
+
+  test('should add comment to experience', async ({ page }) => {
+    await page.goto('/experiences/1');
+    
+    const commentText = 'This prompt worked great for my project too!';
+    
+    // Fill comment
+    await page.fill('textarea[name="comment"]', commentText);
+    await page.click('button:has-text("Post Comment")');
+    
+    // Verify comment appears
+    await expect(page.locator(`text=${commentText}`)).toBeVisible();
+  });
+
+  test('should react with helpful reaction', async ({ page }) => {
+    await page.goto('/experiences/1');
+    
+    // Click helpful button
+    await page.click('[data-testid="reaction-helpful"]');
+    
+    // Verify reaction count updated
+    const helpfulCount = page.locator('[data-testid="helpful-count"]');
+    await expect(helpfulCount).toHaveText(/[1-9]\d*/);
+  });
+
+  test('should open GitHub URL in new tab', async ({ page, context }) => {
+    await page.goto('/experiences/1');
+    
+    // Get GitHub link
+    const githubLink = page.locator('a[href*="github.com"]');
+    await expect(githubLink).toBeVisible();
+    
+    // Verify link opens in new tab
+    const href = await githubLink.getAttribute('href');
+    expect(href).toMatch(/^https:\/\/github\.com/);
+    
+    const target = await githubLink.getAttribute('target');
+    expect(target).toBe('_blank');
+  });
+
+  test('should prevent duplicate reactions', async ({ page }) => {
+    await page.goto('/experiences/1');
+    
+    // Click helpful button twice
+    await page.click('[data-testid="reaction-helpful"]');
+    await page.click('[data-testid="reaction-helpful"]');
+    
+    // Second click should remove reaction
+    const helpfulButton = page.locator('[data-testid="reaction-helpful"]');
+    await expect(helpfulButton).not.toHaveClass(/active/);
+  });
+});
+
+/**
+ * Test Scenario 5: User Profile
+ * From quickstart.md: User Journey Validation
+ */
+test.describe('User Profile Journey', () => {
+  test.beforeEach(async ({ context }) => {
+    await context.addCookies([{
+      name: 'next-auth.session-token',
+      value: 'mock-session-token',
+      domain: 'localhost',
+      path: '/'
+    }]);
+  });
+
+  test('should display user profile information', async ({ page }) => {
+    await page.goto(`/profile/${TEST_USER.githubId}`);
+    
+    // Verify profile elements
+    await expect(page.locator(`text=${TEST_USER.githubUsername}`)).toBeVisible();
+    await expect(page.locator('img[alt*="avatar"]')).toBeVisible();
+    await expect(page.locator('text=Experiences')).toBeVisible();
+    await expect(page.locator('text=Contributions')).toBeVisible();
+  });
+
+  test('should show list of user experiences', async ({ page }) => {
+    await page.goto(`/profile/${TEST_USER.githubId}`);
+    
+    // Verify experiences list
+    const experiencesList = page.locator('[data-testid="user-experiences"]');
+    await expect(experiencesList).toBeVisible();
+    
+    const experienceCards = experiencesList.locator('[data-testid="experience-card"]');
+    await expect(experienceCards).toHaveCount({ timeout: 5000 });
+  });
+
+  test('should edit profile bio', async ({ page }) => {
+    await page.goto('/profile/me');
+    
+    // Click edit button
+    await page.click('button:has-text("Edit Profile")');
+    
+    const newBio = 'Full-stack developer passionate about AI coding tools';
+    
+    // Edit bio
+    await page.fill('textarea[name="bio"]', newBio);
+    await page.click('button:has-text("Save")');
+    
+    // Verify bio updated
+    await expect(page.locator(`text=${newBio}`)).toBeVisible();
+  });
+
+  test('should show contribution statistics', async ({ page }) => {
+    await page.goto(`/profile/${TEST_USER.githubId}`);
+    
+    // Verify stats are displayed
+    await expect(page.locator('[data-testid="experience-count"]')).toBeVisible();
+    await expect(page.locator('[data-testid="prompt-count"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reaction-count"]')).toBeVisible();
+  });
+});
+
+/**
+ * Performance Validation
+ * From quickstart.md: Performance Validation
+ */
+test.describe('Performance Validation', () => {
+  test('should handle 15+ concurrent connections', async ({ browser }) => {
+    // Simulate 15 concurrent users
+    const contexts = await Promise.all(
+      Array(15).fill(null).map(() => browser.newContext())
+    );
+    
+    const pages = await Promise.all(
+      contexts.map(context => context.newPage())
+    );
+    
+    // All users navigate to feed simultaneously
+    const startTime = Date.now();
+    await Promise.all(
+      pages.map(page => page.goto('/feed'))
+    );
+    const endTime = Date.now();
+    
+    // Verify all pages loaded within acceptable time (< 5 seconds)
+    const loadTime = endTime - startTime;
+    expect(loadTime).toBeLessThan(5000);
+    
+    // Verify all pages loaded successfully
+    for (const page of pages) {
+      await expect(page.locator('h1')).toBeVisible();
+    }
+    
+    // Cleanup
+    await Promise.all(pages.map(page => page.close()));
+    await Promise.all(contexts.map(context => context.close()));
+  });
+
+  test('should load feed page within performance budget', async ({ page }) => {
+    const startTime = Date.now();
+    await page.goto('/feed');
+    const loadTime = Date.now() - startTime;
+    
+    // Feed should load in under 2 seconds
+    expect(loadTime).toBeLessThan(2000);
+  });
+});
+
+/**
+ * Data Validation
+ * From quickstart.md: Data Validation
+ */
+test.describe('Data Validation', () => {
+  test('should accept valid GitHub URLs', async ({ page, context }) => {
+    await context.addCookies([{
+      name: 'next-auth.session-token',
+      value: 'mock-session-token',
+      domain: 'localhost',
+      path: '/'
+    }]);
+    
+    await page.goto('/create');
+    
+    const validUrls = [
+      'https://github.com/user/repo',
+      'https://github.com/user/repo/blob/main/file.js',
+      'https://github.com/user/repo/tree/branch',
+    ];
+    
+    for (const url of validUrls) {
+      await page.fill('input[name="githubUrl"]', url);
+      const errorMessage = page.locator('text=Must be a valid GitHub URL');
+      await expect(errorMessage).not.toBeVisible();
+    }
+  });
+
+  test('should reject non-GitHub URLs', async ({ page, context }) => {
+    await context.addCookies([{
+      name: 'next-auth.session-token',
+      value: 'mock-session-token',
+      domain: 'localhost',
+      path: '/'
+    }]);
+    
+    await page.goto('/create');
+    
+    const invalidUrls = [
+      'https://gitlab.com/user/repo',
+      'https://bitbucket.org/user/repo',
+      'https://example.com/code',
+    ];
+    
+    for (const url of invalidUrls) {
+      await page.fill('input[name="githubUrl"]', url);
+      await page.fill('input[name="title"]', 'Test');
+      await page.fill('textarea[name="description"]', 'Test');
+      await page.click('button[type="submit"]');
+      
+      await expect(page.locator('text=Must be a valid GitHub URL')).toBeVisible();
+    }
+  });
+});
+
+/**
+ * Security Validation
+ * From quickstart.md: Security Validation
+ */
+test.describe('Security Validation', () => {
+  test('should require authentication for all content', async ({ page }) => {
+    const protectedRoutes = [
+      '/feed',
+      '/create',
+      '/profile/me',
+      '/experiences/1',
+    ];
+    
+    for (const route of protectedRoutes) {
+      await page.goto(route);
+      
+      // Should redirect to login
+      await expect(page).toHaveURL(/\/api\/auth\/signin/);
+    }
+  });
+
+  test('should sanitize HTML in user input', async ({ page, context }) => {
+    await context.addCookies([{
+      name: 'next-auth.session-token',
+      value: 'mock-session-token',
+      domain: 'localhost',
+      path: '/'
+    }]);
+    
+    await page.goto('/create');
+    
+    const maliciousInputs = [
+      '<script>alert("XSS")</script>',
+      '<img src=x onerror="alert(1)">',
+      '<iframe src="javascript:alert(1)"></iframe>',
+    ];
+    
+    for (const input of maliciousInputs) {
+      await page.fill('input[name="title"]', input);
+      await page.fill('textarea[name="description"]', input);
+      await page.fill('input[name="githubUrl"]', 'https://github.com/test/test');
+      await page.selectOption('select[name="aiAssistant"]', 'github-copilot');
+      
+      await page.click('button[type="submit"]');
+      
+      // Verify no script execution occurred
+      const alerts = [];
+      page.on('dialog', dialog => {
+        alerts.push(dialog.message());
+        dialog.dismiss();
+      });
+      
+      await page.waitForTimeout(1000);
+      expect(alerts).toHaveLength(0);
+    }
+  });
+
+  test('should validate input length limits', async ({ page, context }) => {
+    await context.addCookies([{
+      name: 'next-auth.session-token',
+      value: 'mock-session-token',
+      domain: 'localhost',
+      path: '/'
+    }]);
+    
+    await page.goto('/create');
+    
+    // Test title max length (500 characters)
+    const longTitle = 'a'.repeat(501);
+    await page.fill('input[name="title"]', longTitle);
+    await page.click('button[type="submit"]');
+    
+    await expect(page.locator('text=Title must be less than 500 characters')).toBeVisible();
+  });
+});
