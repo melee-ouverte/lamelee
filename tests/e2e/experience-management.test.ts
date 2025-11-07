@@ -59,11 +59,29 @@ test.describe('Experience Creation', () => {
     
     await page.waitForLoadState('networkidle');
     
-    // Look for prompt-related fields
-    const promptFields = await page.locator('textarea[placeholder*="prompt" i], textarea[placeholder*="content" i]').count();
+    // Look for the main prompt content field (not context or results)
+    const promptContentField = page.locator('textarea').filter({ hasText: 'Enter the exact prompt' }).first();
     
-    // May have prompt input fields
-    expect(promptFields).toBeGreaterThanOrEqual(0);
+    if (await promptContentField.count() > 0) {
+      await expect(promptContentField).toBeVisible();
+      
+      // Test adding prompt content
+      await promptContentField.fill('Test prompt for AI assistant');
+      
+      // Check for "Add another prompt" button
+      const addPromptButton = page.locator('button', { hasText: 'Add another prompt' });
+      
+      if (await addPromptButton.count() > 0) {
+        await expect(addPromptButton).toBeVisible();
+        
+        // Click to add another prompt
+        await addPromptButton.click();
+        
+        // Should now have Prompt 1 and Prompt 2 headers
+        const prompt2Header = await page.locator('text=/Prompt 2/i').count();
+        expect(prompt2Header).toBeGreaterThan(0);
+      }
+    }
   });
 
   test('should validate required fields', async ({ page }) => {
@@ -72,7 +90,7 @@ test.describe('Experience Creation', () => {
     await page.waitForLoadState('networkidle');
     
     // Check if form exists
-    const submitButton = page.locator('button[type="submit"]:has-text("Share"), button:has-text("Create")').first();
+    const submitButton = page.locator('button[type="submit"]', { hasText: 'Share Experience' });
     
     if (await submitButton.count() > 0) {
       // Try to submit empty form
@@ -83,6 +101,64 @@ test.describe('Experience Creation', () => {
       
       // Check we're still on create page (not redirected)
       expect(page.url()).toContain('/create');
+    }
+  });
+
+  test('should enforce minimum character requirements', async ({ page }) => {
+    await page.goto(`${BASE_URL}/create`);
+    
+    await page.waitForLoadState('networkidle');
+    
+    const titleInput = page.locator('input#title');
+    const descriptionInput = page.locator('textarea#description');
+    
+    if (await titleInput.count() > 0) {
+      // Test title minimum (5 characters)
+      await titleInput.fill('Test');
+      
+      // Should show red border and error message
+      await expect(titleInput).toHaveClass(/border-red/);
+      await expect(page.locator('text=/minimum 5 required/i')).toBeVisible();
+      
+      // Test description minimum (20 characters)
+      await descriptionInput.fill('Short text');
+      
+      // Should show red border and error message
+      await expect(descriptionInput).toHaveClass(/border-red/);
+      await expect(page.locator('text=/minimum 20 required/i')).toBeVisible();
+    }
+  });
+
+  test('should require at least one GitHub URL', async ({ page }) => {
+    await page.goto(`${BASE_URL}/create`);
+    
+    await page.waitForLoadState('networkidle');
+    
+    const submitButton = page.locator('button[type="submit"]', { hasText: 'Share Experience' });
+    
+    if (await submitButton.count() > 0) {
+      // Fill all required fields except GitHub URL
+      await page.locator('input#title').fill('Test Experience');
+      await page.locator('textarea#description').fill('This is a test description with enough characters');
+      await page.locator('select#aiAssistant').selectOption('github-copilot');
+      
+      // Add a prompt
+      const promptContent = page.locator('textarea').filter({ hasText: 'Enter the exact prompt' }).first();
+      await promptContent.fill('Test prompt content here');
+      
+      // Clear the GitHub URL field
+      await page.locator('input[placeholder*="github.com"]').first().clear();
+      
+      // Try to submit
+      await submitButton.click();
+      
+      await page.waitForTimeout(500);
+      
+      // Should show error or stay on page
+      const errorVisible = await page.locator('text=/github.*required|at least one/i').isVisible();
+      const stillOnCreatePage = page.url().includes('/create');
+      
+      expect(errorVisible || stillOnCreatePage).toBeTruthy();
     }
   });
 
@@ -97,9 +173,11 @@ test.describe('Experience Creation', () => {
       // Type some text
       await descriptionField.fill('Test description for AI coding assistant experience');
       
-      // Look for character count
-      const charCount = await page.locator('text=/\\d+\\/\\d+ characters/i').count();
-      expect(charCount).toBeGreaterThan(0);
+      // Look for character count - should show something like "52/2000 characters"
+      const charCountText = await page.locator('text=/\\d+\\/2000 characters/i').textContent();
+      
+      expect(charCountText).toBeTruthy();
+      expect(charCountText).toMatch(/\d+\/2000 characters/i);
     }
   });
 });
@@ -250,11 +328,31 @@ test.describe('Experience Tags', () => {
     
     await page.waitForLoadState('networkidle');
     
-    // Look for tag limit information
-    const tagLimit = await page.locator('text=/up to \\d+ tags|maximum.*tags/i').count();
+    const tagInput = page.locator('input[placeholder*="tag" i]').first();
+    const addButton = page.locator('button:has-text("Add")').first();
     
-    // May or may not show limit text
-    expect(tagLimit).toBeGreaterThanOrEqual(0);
+    if (await tagInput.count() > 0 && await addButton.count() > 0) {
+      // Add 10 tags (the maximum)
+      for (let i = 1; i <= 10; i++) {
+        await tagInput.fill(`tag${i}`);
+        await addButton.click();
+        await page.waitForTimeout(100);
+      }
+      
+      // Verify 10 tags are displayed
+      const tagBadges = await page.locator('span.inline-flex.items-center').count();
+      expect(tagBadges).toBe(10);
+      
+      // Try to add an 11th tag
+      await tagInput.fill('tag11');
+      
+      // Add button should be disabled
+      await expect(addButton).toBeDisabled();
+      
+      // Verify still only 10 tags
+      const finalTagCount = await page.locator('span.inline-flex.items-center').count();
+      expect(finalTagCount).toBe(10);
+    }
   });
 
   test('should display tags on experience cards', async ({ page }) => {
